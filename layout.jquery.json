@@ -1,14 +1,15 @@
 {
 	"name": "layout",
-	"title": "jQuery UI Layout",
-	"description": "jQuery plugin for advanced panel-layouts.",
+	"title": "UI Layout",
+	"description": "jQuery plugin for advanced UI layouts with sizable, collapsible, nested panels.",
 	"version": "1.4.0",
 	"keywords": [
 		"ui",
 		"layout"
 	],
 	"author": {
-		"name": "Kevin Dalman"
+		"name": "Kevin Dalman",
+		"email": "kevin@jquery-dev.com",
 	},
 	"maintainers": [
 		{	"name": "Kevin Dalman",
