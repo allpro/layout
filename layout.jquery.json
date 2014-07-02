@@ -1,0 +1,34 @@
+{
+	"name": "layout",
+	"title": "jQuery UI Layout",
+	"description": "jQuery plugin for advanced panel-layouts.",
+	"version": "1.4.0",
+	"keywords": [
+		"ui",
+		"layout"
+	],
+	"author": {
+		"name": "Kevin Dalman"
+	},
+	"maintainers": [
+		{	"name": "Kevin Dalman",
+			"email": "kevin@jquery-dev.com",
+			"url": "http://gnarf.net"
+		}
+	],
+	"licenses": [
+		{	"type": "MIT",
+			"url": "http://www.opensource.org/licenses/mit-license.php"
+		},
+		{	"type": "GPLv3",
+			"url": "http://www.gnu.org/licenses/gpl.html"
+		}
+	],
+	"homepage": "https://github.com/allpro/layout",
+	"docs": "https://github.com/allpro/layout",
+	"bugs": "https://groups.google.com/forum/#!forum/jquery-ui-layout",
+	"download": "http://code.jquery.com/#layout",
+	"dependencies": {
+		"jquery": ">=1.5"
+	}
+}
