@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Layout Inside Tab</title>
+
+	<link type="text/css" rel="stylesheet" href="css/ui-themes/smoothness/jquery-ui.css">
+	<link type="text/css" rel="stylesheet" href="css/layout-default.css">
+
+	<style type="text/css">
+	/* add padding and min/max sizes to BODY */
+	html {
+		/* allow scrolling if layout hits min-width/height */
+		overflow:		auto !important; /* override Layout default of 'hidden' to allow scrollbars */
+	}
+	body {
+		padding:		0 20px !important; /* override Layout default of '0' */
+		/* set min dimensions for layout - window will scroll if smaller than this */
+		min-width:		950px;
+		min-height:		600px;
+		/* max-width works for left-aligned layout - need a container-div to 'center' the layout */
+		/*max-width:		1000px;*/
+	}
+	p {
+		margin:	0 0 1ex;
+	}
+	/* 
+	*	HELPER CLASSES
+	*/
+	.container {
+		/* used for elements that should not have padding or scrollbars */
+		padding:	0;
+		overflow:	hidden;
+	}
+	.hidden {
+		/* used to HIDE layout-panes until Layout initializes */
+		display:	none;
+	}
+
+	/*
+	 *	TAB CLASSES - STRUCTURAL, REQUIRED
+	 */
+	DIV#tabs { /* page-wrapper - used ONLY to 'wrap' tabButtons and tabPanels */
+		position:	static	!important; /* overide UI Theme - prevent from becoming a positional wrapper */
+		}
+		UL#tabButtons ,
+		DIV#tabPanels {
+			margin:		0 !important; /* layout-panes should never have margins */
+		}
+		DIV#tabPanels {}
+			DIV#tab1.tabPanel { /* container for tabLayout */
+				height:		100%; /* need to 'fill' the tabPanels - layout container must have 'height' */
+				/* padding:	0;    DO NOT set top- or bottom-padding because height=100% */
+			}
+
+	/*
+	 *	DEBUG - add colored padding & borders to show what is possible
+	 */
+	#tabs {}
+		#tabButtons {}
+		#tabPanels {	/* Tab-Panels Container (pageLayout center-pane) */
+			border:		10px solid #00C;/* DEBUG - Dark Blue */
+			background:	#99F;			/* DEBUG - Lite Blue */
+			padding:	10px;			/* DEBUG - allows bgColor to show */
+			}
+			#tabPanels .tabPanel { /* #tab0 & #tab1 */
+				background: #CCC;		/* DEBUG - Grey */
+				min-height:	100px;		/* DEBUG */
+				padding:	0 10px;		/* DEBUG - No vertical-padding because #tab1.height=100% */
+				}
+				#innerLayout {	/* innerLayout Container (tabLayout center-pane) */
+					border:		10px solid #090;/* DEBUG - Dark Green*/
+					background: #AFA;			/* DEBUG - Lite Green  */
+					padding:	10px;			/* DEBUG - allows bgColor to show */
+					}
+
+	/*
+	 *	add some padding and set overflow
+	 */
+	.ui-widget-header {
+		padding:	2px 1em 3px;
+		overflow:	hidden;
+	}
+	.ui-widget-content {
+		padding:	1ex 1em;
+		overflow:	auto;
+	}
+
+	</style>
+
+	<script type="text/javascript" src="js/jquery.js"></script>
+	<script type="text/javascript" src="js/jquery-ui.js"></script>
+	<script type="text/javascript" src="js/jquery.layout.js"></script>
+	<script type="text/javascript" src="js/jquery.layout.resizeTabLayout.js"></script>
+	<script type="text/javascript" src="js/debug.js"></script>
+
+	<script type="text/javascript">
+
+	/*
+	 *	Save settings for each layout to hash-vars for easier-to-read code
+	 */
+
+	// options for layout that wraps the tab buttons & panels
+	var pageLayoutSettings = {
+		name:						"pageLayout"
+	,	north__paneSelector:		"#tabButtons"
+	,	center__paneSelector:		"#tabPanels"
+	,	south__paneSelector:		"#pageFooter"
+	,	spacing_open:				0
+	//	center panel contains a Tabs widget, with a layout inside 1 or more tab-panels
+	,	center__onresize:			$.layout.callbacks.resizeTabLayout
+	};
+
+	// options for a 2-level layout _inside_ tab-panel #1
+	var tabLayoutSettings = {
+		name:						"tabLayout"
+	,	initPanes:					false // delay layout init until tab.show calls tabLayout.resizeAll()
+	,	resizeWithWindow:			false // needed because 'nested' inside the tabLayout div
+	,	center__paneSelector:		".middle-center"
+	,	west__paneSelector:			".middle-west"
+	,	east__paneSelector:			".middle-east"
+	,	north__paneSelector:  		".middle-north"
+	,	south__paneSelector:  		".middle-south"
+	,	contentSelector:			".ui-widget-content"
+	,	spacing_open:				4
+	,	spacing_closed:				4
+	,	north__minSize:				20
+	,	north__spacing_open:		1
+	,	north__togglerLength_open:	0
+	,	north__togglerLength_close:	-1
+	,	north__resizable:			false
+	,	north__slidable:			false
+	,	north__fxName:				'none'
+	,	west__size:					200
+	//,	west__initClosed:			true
+	,	south__minSize:				5
+	,	south__size:				'auto'
+	,	south__togglerLength_open:	0
+	,	south__togglerLength_close:	-1
+	,	south__resizable:			false
+	,	south__slidable:			false
+	,	south__spacing_open:		1
+	//	options for 2nd-level layout nested inside center-pane of tab-layout
+	,	center__children: {
+			name:						"innerLayout"
+		,	center__paneSelector:		".inner-center"
+		,	west__paneSelector:			".inner-west"
+		,	east__paneSelector:			".inner-east"
+		,	north__paneSelector:		".inner-north"
+		,	contentSelector:			".ui-widget-content"
+		,	west__initClosed:			true
+		,	east__initClosed:			true
+		,	spacing_open:				4
+		,	spacing_closed:				4
+		,	west__size:					361
+		,	east__size:					250
+		,	east__fxSpeed:				'slow'
+		,	north__minSize:				15
+		,	north__spacing_open:		2
+		,	north__togglerLength_open:	50
+		,	north__togglerLength_close:	-1
+		}
+	};
+
+	function addCosmeticStyles () {
+		// add cosmetic Theme styles dynamically so HTML mark-up is easier to read
+		// except the ui-widget-content classes, which are hard-coded because used as Layout selectors
+		$('#tab1').children().not('#innerLayout')
+			.addClass('ui-widget')
+				.find('>:eq(0)').addClass('ui-widget-header').end()
+				//.find('>:eq(1)').addClass('ui-widget-content').end() - hard-coded
+				.find('>:eq(2)').addClass('footer ui-widget-header')
+		;
+		$('#innerLayout').children()
+			.addClass('ui-widget')
+				.find('>:eq(0)').addClass('ui-widget-header').end()
+				//.find('>:eq(1)').addClass('ui-widget-content').end() - hard-coded
+		;
+		$('#pageFooter').addClass('ui-state-default')
+	};
+
+
+	/*
+	 *	init page onLoad
+	 */
+	$(document).ready(function () {
+
+		// create the tabs before the page layout because tabs will change the height of the north-pane
+		$("#tabs").tabs({
+			// using callback addon
+			activate: $.layout.callbacks.resizeTabLayout
+
+			/* OR with a custom callback
+			activate: function (evt, ui) {
+				$.layout.callbacks.resizeTabLayout( evt, ui );
+				// other code...
+			}
+			*/
+		});
+
+		// add UI classes for cosmetics -- before creating layouts because may change element heights
+		addCosmeticStyles();
+
+		// create the outer/page layout
+		$('body').layout( pageLayoutSettings );
+
+		// init #tab1 tabLayout - will only partially init if tab is 'hidden'
+		$('#tab1').layout( tabLayoutSettings );
+
+	});
+
+	</script>
+
+</head>
+<body>
+
+<div id="tabs" class="container">
+
+	<ul id="tabButtons" class="container">
+		<li><a href="#tab0">Tab #0</a></li>
+		<li><a href="#tab1">Tab #1</a></li>
+		<li><a href="#tab2">Tab #2</a></li>
+		<li><a href="#tab3">Tab #3</a></li>
+	</ul>
+
+	<!-- wrap tab-panels in ui-layout-content div -->
+	<div id="tabPanels" class="container">
+
+		<!-- TAB #1 -->
+		<div id="tab1" class="tabPanel ui-widget-content hidden">
+
+			<div class="middle-north container hidden">
+				<div>Outer North</div>
+				<div class="ui-widget-content"><b>#tab1.tabPanel</b> is the 'container' for this tabLayout </div>
+			</div>
+
+			<div id="innerLayout" class="middle-center container hidden">
+
+				<div class="inner-north container">
+					<div>Inner North</div>
+					<div class="ui-widget-content"><b>div.middle-center</b> is the container for this innerLayout</div>
+				</div>
+
+				<div class="inner-center container">
+					<div>Inner Center</div>
+					<div class="ui-widget-content">CENTER</div>
+				</div>
+
+				<div class="inner-west container">
+					<div>Inner West</div>
+					<div class="ui-widget-content">Inner West content</div>
+				</div>
+
+				<div class="inner-east container">
+					<div>Inner East</div>
+					<div class="ui-widget-content">Inner East content</div>
+				</div>
+
+			</div>
+
+			<div class="middle-west container container hidden">
+				<div>Outer West</div>
+				<div class="ui-widget-content">Outer West content</div>
+			</div>
+
+			<div class="middle-south container hidden">
+				<div>Outer South</div>
+			</div>
+
+			<div class="middle-east container hidden">
+				<div>Outer East</div>
+				<div class="ui-widget-content">Outer East content</div>
+			</div>
+
+		</div><!-- TAB #1 / #tabLayout -->
+
+		<!-- TAB #0 -->
+		<div id="tab0" class="tabPanel hidden">
+			<p><b>#tab0.tabPanel</b></p>
+			<div class="ui-widget-content">
+				<p>div.ui-widget-content</p>
+				<p>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.
+				Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.
+				</p>
+			</div>
+		</div>
+
+		<!-- TAB #2 -->
+		<div id="tab2" class="tabPanel hidden">
+			<p><b>#tab2.tabPanel</b></p>
+			<div class="ui-widget-content">
+				<p>div.ui-widget-content</p>
+				<p>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.
+				Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.
+				</p>
+			</div>
+		</div>
+
+		<!-- TAB #3 -->
+		<div id="tab3" class="tabPanel hidden">
+			<p><b>#tab3.tabPanel</b></p>
+			<div class="ui-widget-content">
+				<p>div.ui-widget-content</p>
+				<p>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.
+				Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.
+				</p>
+			</div>
+		</div>
+
+	</div><!-- END tabPanels -->
+
+</div><!-- /#tabs -->
+
+<div id="pageFooter" class="hidden">
+	Page Footer
+</div>
+
+</body>
+</html>

@@ -1,0 +1,78 @@
+<!DOCTYPE html> 
+<html> 
+<head>
+	<title>Layout Container</title>
+
+	<link type="text/css" rel="stylesheet" href="css/layout-default.css" />
+
+	<style type="text/css">
+	html, body {
+		width:		100%;
+		height:		100%;					
+		padding:	0;
+		margin:		0;
+		overflow:	auto; /* when page gets too small */
+	}
+	body {
+		background:	#666;
+	}
+
+	/*
+	 *	#verticalCenteringWrapper
+	 *
+	 *	This is an example of a pure CSS solution for vertical centering
+	 *	It works well when dealing with a fixed-height container
+	 *	However if you just want a 'margin' at top and bottom,
+	 *	then you could use an absolutely positioned div with top & bottom settings,
+	 *	or use an extra wrapper-layout as described in more detail below.
+	 */
+	#verticalCenteringWrapper {
+		background:	#777; /* for easier visualization */
+		overflow:	visible !important; /* override Layout CSS added due to #container.min-height */
+		width:		100%;
+		height:		0;
+		top:		50%;
+		position:	absolute;
+	}
+	#container {
+		background:	#999;
+		height:		500px;
+		margin:		-250px auto 0; /* top-margin = height/2 */
+		width:		100%;
+		max-width:	1100px;
+		min-width:	700px;
+		_width:		700px; /* min-width for IE6 */
+		position:	relative;
+	}
+	.pane {
+		display:	none; /* will appear when layout inits */
+	}
+	</style>
+
+	<script type="text/javascript" src="js/jquery.js"></script>
+	<script type="text/javascript" src="js/jquery-ui.js"></script>
+	<script type="text/javascript" src="js/jquery.layout.js"></script>
+	<script type="text/javascript">
+
+	$(document).ready(function () {
+		$('#container').layout();
+	});
+
+	</script>
+
+</head>
+<body>
+<div id="verticalCenteringWrapper">
+	<div id="container">
+		<div class="pane ui-layout-center">
+			Center
+			<p><a href="http://layout.jquery-dev.com/demos.cfm"><b>Go to the Demos page</b></a></p>
+		</div>
+		<div class="pane ui-layout-north">North</div>
+		<div class="pane ui-layout-south">South</div>
+		<div class="pane ui-layout-east">East</div>
+		<div class="pane ui-layout-west">West</div>
+	</div>
+</div>
+</body>
+</html>

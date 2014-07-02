@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<HEAD>
+	<title>Layout Destroy Demo #2</title>
+
+	<link type="text/css" rel="stylesheet" href="css/layout-default.css">
+
+	<style type="text/css">
+
+	.container	{ padding: 0; overflow: hidden; }
+	.blue		{ background: #EEF; }
+	.green		{ background: #EFE; }
+	button		{ padding: 5px 7px; }
+
+	</style>
+
+	<script type="text/javascript" src="js/jquery.js"></script>
+	<script type="text/javascript" src="js/jquery-ui.js"></script>
+	<script type="text/javascript" src="js/jquery.layout_and_plugins.js"></script>
+	<script type="text/javascript" src="js/debug.js"></script>
+	<script type="text/javascript">
+
+	var pageLayout;
+
+	// utility to log state-data for demo purposes
+	function outputHashStructure ( hash, title ) {
+		if ($.type(hash) === 'string') {
+			hash = eval(hash);
+		}
+		var data = getKeys( hash );
+		console.data( data, title || 'data' );
+		return data;
+
+		function getKeys ( branch ) {
+			var keys = {};
+			$.each( branch, function (k,v) {
+				if ($.isPlainObject( v )) {
+					// we can skip sub-keys in options, state, etc.
+					if ( k.match(/(options|state)/) ) // 
+						keys[ k ] = {};
+					else
+						keys[ k ] = getKeys( v );
+				}
+			});
+			return keys;
+		};
+	};
+
+	$(document).ready(function () {
+
+		pageLayout = $('body').layout({
+			name:		'outerLayout'
+		,	west: {
+				size:		.50
+			,	children: {
+					name:		'middleLayout'
+				,	center__children: {
+						name:		'innerLayout'
+					,	east__size:	.33
+					,	west__size:	.33
+					,	autoResize:	true // try to maintain percentage sizes
+					,	stateManagement__autoLoad: false // disable cascaded state-loading
+					}
+				}
+			}
+		,	east: {
+				initClosed:	true
+			}
+		,	stateManagement: {
+				enabled:	true	// NOTE: includeChildren = true  by default
+			}
+		});
+
+		// manually add a layout inside the center content-div
+		// the page-layout will be automatically detected and updated
+		pageLayout.center.content.layout();
+
+		// sync checkbox with layout state options
+		var state = pageLayout.options.stateManagement;
+		$('#autoSaveState').attr("checked", (state.enabled && !!state.autoSave) );
+		$('#autoLoadState').attr("checked", (state.enabled && !!state.autoLoad) );
+
+	});
+
+	</script>
+
+</HEAD>
+<BODY>
+
+<div class="ui-layout-north">Outer North &nbsp; &nbsp;
+
+	<button onClick="pageLayout.destroy()"
+	>Destroy Outer</button>
+	
+	<button onClick="pageLayout = pageLayout.container.layout( pageLayout.options )"
+	>Create Outer</button> &nbsp; &nbsp;
+
+
+	<button onClick="pageLayout.west.children.middleLayout.destroy()"
+	>Destroy Middle</button>
+	
+	<button onClick="pageLayout.createChildren('west')"
+	>Create Middle</button> &nbsp; &nbsp;
+
+
+	<button onClick="pageLayout.west.children.middleLayout.center.children.innerLayout.destroy()"
+	>Destroy Inner</button>
+
+	<button onClick="pageLayout.west.children.middleLayout.createChildren('center')"
+	>Create Inner</button> &nbsp; &nbsp;
+
+
+	<button onClick="pageLayout.removePane('west')"
+	>Remove Outer-West Pane</button>
+	
+	<button onClick="pageLayout.addPane('west')"
+	>Re-Add Outer-West Pane</button> &nbsp; &nbsp;
+
+</div>
+
+<div class="ui-layout-center container blue">
+	<div style="padding: 10px 10px 0;">
+		Outer Center &nbsp; &nbsp;
+
+		<button onClick="pageLayout.center.children.layout1.destroy()">
+		Destroy Center</button>
+
+		<button onClick="pageLayout.center.content.layout()"
+		>Create Center</button>
+
+		<p><a href="http://layout.jquery-dev.com/demos.cfm">Go to the Demos page</a></p>
+	</div>
+	<div class="ui-layout-content green" style="border-top: 1px solid #BBB;">
+		<div class="ui-layout-north">Center North</div>
+		<div class="ui-layout-center">
+			Center Center
+			<p>
+				<input id="autoLoadState" type="checkbox" value="1" checked="checked" disabled="disabled"
+				onchange="var o = pageLayout.options.stateManagement; o.autoSave=this.checked; if (this.checked) o.enabled=true;" 
+				onclick="this.blur(); this.focus();">
+				<label for="autoLoadState" style="color: #888;"><b>options.stateManagement.autoLoad</b></label>
+				<br> &nbsp; &nbsp; &nbsp; load-state when layout created - see options
+				<br><br>
+				<input id="autoSaveState" type="checkbox" value="1" checked="checked"
+				onchange="var o = pageLayout.options.stateManagement; o.autoSave=this.checked; if (this.checked) o.enabled=true;" 
+				onclick="this.blur(); this.focus();">
+				<label for="autoSaveState"><b>options.stateManagement.autoSave</b></label>
+				<br> &nbsp; &nbsp; &nbsp; save-state on window.unload &amp; layout.destroy()
+				<br><br>
+				<button onClick="pageLayout.deleteCookie()">pageLayout.deleteCookie()</button>
+			</p>
+
+			<p><hr/>
+<!--
+				<input value="pageLayout.west.children.layout1" type="text" style="width: 100%; font-size: 1.1em; padding: 5px; box-sizing: border-box;">
+				<button onClick="var v = $(this).prev().val(); outputHashStructure( v, v )">Log This Branch</button>&nbsp;&nbsp;&nbsp;
+				<button onClick="console.data( pageLayout, 'pageLayout' )">Log All Data</button>
+-->
+				<button onClick="outputHashStructure( pageLayout, 'pageLayout' )">Log Layout Data Structure</button>
+			</p>
+		</div>
+		<div class="ui-layout-south">Center South</div>
+	</div>
+</div>
+
+<div class="ui-layout-west blue"><B><u>Outer West</u></B>
+	<div class="ui-layout-north">Middle North</div>
+	<div class="ui-layout-south">Middle South</div>
+	<div class="ui-layout-center green"><B><u>Middle Center</u></B>
+		<div class="ui-layout-west">Inner West</div>
+		<div class="ui-layout-east">Inner East</div>
+		<div class="ui-layout-center">Inner Center</div>
+	</div>
+</div>
+
+<div class="ui-layout-east">Outer East</div>
+
+<div class="ui-layout-south">Outer South</div>
+
+</BODY>
+</html>

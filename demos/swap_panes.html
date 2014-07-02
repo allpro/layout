@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<HEAD>
+	<title>Layout Pane-Swapping</title>
+
+	<link rel="stylesheet" type="text/css" href="css/layout-default.css" />
+
+	<style type="text/css">
+	/* Customize styles for demo */
+
+	/*	These are the hard-coded classNames on the panes,
+	 *	so these styles will stay with the panes no matter
+	 *	which edge of the layout they are moved to 
+	 */
+	.ui-layout-west {
+		padding:	40px 10px;
+	}
+	.ui-layout-east {
+		padding:	30px 30px;
+	}
+	.ui-layout-north { background: #EEF; }
+	.ui-layout-south { background: #FFE; }
+	.ui-layout-west  { background: #FEF; }
+	.ui-layout-east  { background: #EFE; }
+
+	/*	The 'ui-layout-pane-west' class is auto-generated,
+	 *	so this WILL change depending on where the pane is.
+	/*	The rule means ALWAYS show bold-red text in the west-pane,
+	 *	regardless of which pane is moved there.
+	 */
+	.ui-layout-pane-west { color: Red; font-weight: bold !important; }
+
+	/* format togglerContent in east-pane */
+	.ui-layout-toggler span.content {
+		font: bold 15px Trebuchet, 'Trebuchet MS', Arial, sans-serif;
+		line-height: 1.1em; /* for west/east panes */
+		padding: 1px 0; /* for north/south panes */
+	}
+
+	button { margin: 1em 0 0 1em; }
+
+	</style>
+
+	<script type="text/javascript" src="js/jquery.js"></script>
+	<script type="text/javascript" src="js/jquery-ui.js"></script>
+	<script type="text/javascript" src="js/jquery.layout.js"></script>
+	<script type="text/javascript" src="js/debug.js"></script>
+
+	<script type="text/javascript">
+
+	var myLayout;
+
+	$(document).ready(function () {
+		myLayout = $('body').layout({
+			center__minWidth:			50
+		,	center__minHeight:			100
+		,	east__size:					'auto'
+		,	north__togglerLength_open:	200
+		,	east__spacing_open:			20
+		,	east__spacing_closed:		20
+		,	east__togglerLength_open:	100
+		,	east__togglerLength_closed:	100
+		,	east__togglerContent_open:	"C<BR>L<BR>O<BR>S<BR>E"
+		,	east__togglerContent_closed:"O<BR>P<BR>E<BR>N"
+		,	east__onswap_start: function (pane, $Pane, state, options) {
+				// This pane will be moving to a new 'edge' (eg: south), so... 
+				// add or remove (replace) line-breaks in the togglerContent text
+				// Use onswap_start so options are set BEFORE the new toggler is generated
+				var
+					newEdge = state.newEdge
+				,	o = options
+				;
+				// NOTE: <!br> is treated as a 'comment', so use to 'disable' line-breaks
+				if (newEdge=="north" || newEdge=="south") {
+					o.togglerContent_open	= o.togglerContent_open.replace(/<br>/gi, "<!br>");
+					o.togglerContent_closed	= o.togglerContent_closed.replace(/<br>/gi, "<!br>");
+				}
+				else {
+					o.togglerContent_open	= o.togglerContent_open.replace(/<\!br>/gi, "<br>");
+					o.togglerContent_closed	= o.togglerContent_closed.replace(/<\!br>/gi, "<br>");
+				}
+			}
+		/*
+		,	east__minSize:			200
+		,	east__maxSize:			'75%'
+		,	east__initClosed:		true
+		,	onunload: function (Instance, state, options) {
+				alert( 'west = '+ Instance.panes.west[0].className );
+				debugData( options.west );;
+			}
+		*/
+		});
+ 	});
+
+	</script>
+
+</HEAD>
+<BODY>
+
+<div class="ui-layout-north"> North </div>
+
+<div class="ui-layout-center"> Center	
+	<p>
+		Now is the time for all good men to come to the aid of their country.
+		Now is the time for all good men to come to the aid of their country.
+		Now is the time for all good men to come to the aid of their country.
+		Now is the time for all good men to come to the aid of their country.
+	</p>
+	<p>
+		<button onclick="myLayout.swapPanes('east','west')">Swap East/West Panes</button>
+		<button onclick="myLayout.swapPanes('north','south')">Swap North/South Panes</button>
+		<button onclick="myLayout.swapPanes('north','west')">Swap North/West Panes</button>
+		<button onclick="myLayout.swapPanes('south','east')">Swap South/East Panes</button>
+		<button onclick="myLayout.swapPanes('north','west');myLayout.swapPanes('south','east');myLayout.swapPanes('east','west');">Round-Robin ;)</button>
+	</p>
+	<!-- filler content so panel will scroll -->
+	<p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p>
+	<p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p>
+	<p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p>
+	<p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p>
+	<p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p>
+	<p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p>
+	<p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p>
+</div>
+
+<div class="ui-layout-south"> South </div>
+
+<div class="ui-layout-west"> West </div>
+
+<div class="ui-layout-east"> East </div>
+
+</BODY>
+</html>

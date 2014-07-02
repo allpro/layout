@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+	<title>DESTROY Layout Demo</title>
+
+	<link rel="stylesheet" type="text/css" href="css/layout-default.css" />
+	<style type="text/css">
+
+	/* CSS below is only for cosmetic and demo purposes */
+	body {
+		padding:		30px; /* test destroy */
+		font-family:	Arial, sans-serif;
+		*font-size:		0.85em;
+	}
+	button {
+		font-size:		1em;
+		padding:		3px 7px;
+	}
+	.ui-layout-west button {
+		width:			100%;
+		padding:		3px 2px;
+	}
+	p {
+		margin: 1em 0;
+	}
+	h3 {
+		font-size:		1em;
+		font-weight:	bold;
+		margin:			1em 0 1ex;
+	}
+
+	.ui-layout-north ,
+	.ui-layout-south ,
+	.ui-layout-west ,
+	.ui-layout-east ,
+	.ui-layout-center {
+		border:		1px dashed #999;
+		padding:	10px; /* match .ui-layout-pane padding */
+	}
+
+	.ui-layout-center .ui-layout-pane-center {
+		padding:	0;
+		overflow:	hidden;
+		}
+		.ui-layout-center h4 ,
+		.ui-layout-center h5 {
+			padding:		0;
+			margin:			10px 0;
+		}
+		.ui-layout-center .ui-layout-pane-center h4 ,
+		.ui-layout-center .ui-layout-pane-center h5 {
+			padding:		10px;
+			margin:			0;
+		}
+		.ui-layout-center .ui-layout-pane-center h4 {
+			border-bottom:	1px solid #BBB;
+			background:		#F6F6F6;
+		}
+		.ui-layout-center .ui-layout-pane-center h5 {
+			border-top:	1px solid #BBB;
+			background:		#F6F6F6;
+		}
+
+	</style>
+
+	<script type="text/javascript" src="js/jquery.js"></script>
+	<script type="text/javascript" src="js/jquery-ui.js"></script>
+	<script type="text/javascript" src="js/jquery.layout_and_plugins.js"></script>
+	<script type="text/javascript" src="js/debug.js"></script>
+	<script type="text/javascript">
+
+	var outerLayout, innerLayout;
+
+	function createLayout ( containerSelector ) {
+		var name = (containerSelector === 'body' ? 'outerLayout' : 'innerLayout')
+		var $C = $(containerSelector);
+		if (!$C.data("layoutContainer"))
+			window[ name ] = $C.layout({
+				name:						name
+			,	initChildren:				false
+			,	destroyChildren:			false
+			,	stateManagement__enabled:	true // maintain state between destroy/create
+			,	includeChildren:			false
+			});
+
+		// show appropriate button
+		$('.btnCreate_' + name).hide();
+		$('.btnDestroy_'+ name).show();
+	};
+
+	function destroyLayout ( containerSelector ) {
+		var name = (containerSelector=='body' ? 'outerLayout' : 'innerLayout')
+		var $C = $(containerSelector);
+		if ($C.data("layoutContainer"))
+			$C.layout().destroy();
+
+		// show appropriate button
+		window[ name ] = null;
+		$('.btnDestroy_'+ name).hide();
+		$('.btnCreate_' + name).show();
+	};
+
+	function clearState () {
+		var $Container, Instance;
+		$.each(['body','body > .ui-layout-center'], function(idx, selector) {
+			$C = $( selector );
+			if ($C.data("layoutContainer")) {
+				Instance = $C.layout();
+				Instance.deleteCookie();
+				Instance.options.cookie.autoSave = false;
+			}
+		});
+	};
+
+	function listEvents (elem) {
+		var data	= $(elem).data('events')
+		,	events	= {}
+		,	thisEvent, namespace, layout, eventName
+		;
+		for (eventName in data) {
+			if (eventName.substr(0,6) !== 'layout')
+				continue; // skip non-layout events
+			thisEvent = data[ eventName ][0];
+			namespace = thisEvent.namespace +'__'+ (eventName.substr(0,10) === 'layoutpane' ? 'pane' : 'container');
+			if (!events[ namespace ])
+				events[ namespace ] = {};
+			layout = events[ namespace ];
+			layout[ eventName ] = thisEvent.handler;
+		}
+		console.data( events, 'Layout Events', { sort: true });
+	};
+
+
+	$(document).ready(function(){
+		// create layout(s) on-page-load...
+		//createLayout('body');
+		//createLayout('body > .ui-layout-center');
+ 	});
+
+	</script>
+
+</head>
+<body>
+
+<p><a href="http://layout.jquery-dev.com/demos.cfm"><B>Go to the Demos page</B></a></p>
+
+<!-- outerLayout -->
+<div class="ui-layout-north">
+	<button class="btnCreate_outerLayout" onclick="createLayout('body')">
+		CREATE outerLayout</button>
+	<button class="btnDestroy_outerLayout" onclick="destroyLayout('body')" style="display: none;">
+		DESTROY outerLayout</button>
+	&nbsp; &nbsp;
+	<button class="btnCreate_innerLayout" onclick="createLayout('body > .ui-layout-center')">
+		CREATE innerLayout</button>
+	<button class="btnDestroy_innerLayout" onclick="destroyLayout('body > .ui-layout-center')" style="display: none;">
+		DESTROY innerLayout</button>
+	&nbsp; &nbsp;
+	<button class="btnCookie" onclick="clearState();">
+		Clear State-Cookies</button>
+</div>
+
+<div class="ui-layout-center" style="background: #FFD;">
+
+	<!-- innerLayout -->
+	<div class="ui-layout-north">
+		<button class="btnCreate_innerLayout" onclick="createLayout('body > .ui-layout-center')">
+			CREATE innerLayout</button>
+		<button class="btnDestroy_innerLayout" onclick="destroyLayout('body > .ui-layout-center')" style="display: none;">
+			DESTROY innerLayout</button>
+	</div>
+	<div class="ui-layout-center">
+		<H4>Inner Center </H4>
+		<div class="ui-layout-content">
+			Inner Center Content
+			<p>...</p><p>...</p><p>...</p>
+		</div>
+		<H5>Inner Center Footer </H5>
+	</div>
+	<div class="ui-layout-west">  Inner West </div>
+	<div class="ui-layout-east">  Inner East </div>
+	<div class="ui-layout-south"> Inner South </div>
+
+</div>
+
+<div class="ui-layout-west">  Outer West
+
+	<H3>Using Layout-Instance</H3>
+	<button onclick="outerLayout.addPane('east')">Add Outer East</button><br />
+	<button onclick="outerLayout.removePane('east')">Remove Outer East</button><br />
+	<button onclick="outerLayout.removePane('east', true)">Delete Outer East</button><br />
+	<br />
+	<button onclick="innerLayout.addPane('east')">Add Inner-East</button>
+	<button onclick="innerLayout.removePane('east')">Remove Inner East</button><br />
+	<button onclick="innerLayout.removePane('east', true)">Delete Inner East</button><br />
+	<br />
+	<button onclick="listEvents('body > .ui-layout-center')">List Outer Center <SPAN style="white-space: nowrap;">Layout-Events</SPAN></button>
+
+	<H3>Using Pane-Events</H3>
+	<button onclick="$('body > .ui-layout-east').trigger('layoutpaneremove')">Remove Outer East</button><br />
+	<button onclick="$('body > .ui-layout-east').trigger('layoutpaneremove', [ true ])">Delete Outer East</button><br />
+	<br />
+	<button onclick="$('body > .ui-layout-center > .ui-layout-east').trigger('layoutpaneremove')">Remove Inner East</button><br />
+	<button onclick="$('body > .ui-layout-center > .ui-layout-east').trigger('layoutpaneremove', [ true ])">Delete Inner East</button><br />
+
+</div>
+<div class="ui-layout-east">  Outer East </div>
+<div class="ui-layout-south"> Outer South </div>
+
+<!-- Test Page Scrolling after outerLayout.destroy()
+-->
+<p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p>
+<p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p>
+<p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p>
+
+</body>
+</html>

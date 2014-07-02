@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Flexible-Height Layout</title>
+
+	<link rel="stylesheet" type="text/css" href="css/layout-default.css" />
+
+	<style type="text/css">
+
+	.hidden { display: none; }
+	#content { position: relative; overflow: hidden; }
+
+	</style>
+
+	<script type="text/javascript" src="js/jquery.js"></script>
+	<script type="text/javascript" src="js/jquery-ui.js"></script>
+	<script type="text/javascript" src="js/jquery.layout.js"></script>
+	<script type="text/javascript">
+
+	var myLayout;
+
+	function sizeCenterPane () {
+		var $Container	= $('#container')
+		,	$Pane		= $('.ui-layout-center')
+		,	$Content	= $('#content')
+		,	outerHeight = $Pane.outerHeight()
+			// use a Layout utility to calc total height of padding+borders (also handles IE6)
+		,	panePadding	= outerHeight - $.layout.cssHeight($Pane, outerHeight)
+		;
+		// update the container height - *just* tall enough to accommodate #Content without scrolling
+		$Container.height( $Pane.position().top + $Content.outerHeight() + panePadding );
+		// now resize panes to fit new container size
+		myLayout.resizeAll();
+	}
+
+	function addText () {
+		$('#content').append('<p>Some more text...</p>');
+		sizeCenterPane();
+	}
+
+	function removeText () {
+		$('#content > p:last').remove();
+		sizeCenterPane();
+	}
+
+
+	$(document).ready(function(){
+
+		// first set a 'fixed height' on the container so it does not collapse...
+		var $Container = $('#container')
+		$Container.height( $(window).height() - $Container.offset().top );
+
+		// NOW create the layout
+		myLayout = $('#container').layout({
+			north__spacing_open: 0
+		});
+		
+		// now RESIZE the container to be a perfect fit
+		sizeCenterPane();
+
+	});
+	
+	</script>
+
+</head>
+<body>
+
+<p>
+	<button onclick="addText()">Add Text</button>
+	<button onclick="removeText()">Remove Text</button>
+</p>
+
+<div id="container">
+
+    <div class="ui-layout-north hidden"> header </div> 
+
+    <div class="ui-layout-center hidden">
+		<div id="content">
+			<p>NOTE: The auto-height adjustment on this page is NOT a built-in feature of Layout.
+				A small sizeCenterPane() function in the source-code of this page provides auto-sizing.
+				This is a sample of how to customize Layout's functionality to suit a special need.
+			</p>
+			<p>Some text...</p>
+			<p>Some text...</p>
+			<p>Some text...</p>
+			<p>Some text...</p>
+			<p>Some text...</p>
+			<p>Some text...</p>
+			<p>Some text...</p>
+			<p>Some text...</p>
+			<p>Some text...</p>
+			<p>Some text...</p>
+			<p>Some text...</p>
+			<p>Some text...</p>
+			<p>Some text...</p>
+			<p>Some text...</p>
+		</div>
+	</div>
+
+    <div class="ui-layout-west hidden">
+		west
+		<p>Some text...</p>
+		<p>Some text...</p>
+		<p>Some text...</p>
+		<p>Some text...</p>
+		<p>Some text...</p>
+		<p>Some text...</p>
+		<p>Some text...</p>
+		<p>Some text...</p>
+		<p>Some text...</p>
+		<p>Some text...</p>
+		<p>Some text...</p>
+		<p>Some text...</p>
+		<p>Some text...</p>
+		<p>Some text...</p>
+	</div>
+
+    <div class="ui-layout-east hidden">
+		east
+		<p>Some text...</p>
+		<p>Some text...</p>
+		<p>Some text...</p>
+		<p>Some text...</p>
+		<p>Some text...</p>
+		<p>Some text...</p>
+		<p>Some text...</p>
+		<p>Some text...</p>
+		<p>Some text...</p>
+		<p>Some text...</p>
+		<p>Some text...</p>
+		<p>Some text...</p>
+		<p>Some text...</p>
+		<p>Some text...</p>
+	</div>
+
+</div> 
+
+</body>
+</html>

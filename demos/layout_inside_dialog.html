@@ -1,0 +1,291 @@
+<!DOCTYPE HTML>
+<html>
+<head> 
+	<title>Layout in Dialog Demo</title> 
+
+	<link rel="stylesheet" type="text/css" href="css/ui-themes/smoothness/jquery-ui.css">
+
+	<style type="text/css"> 
+
+	body {
+		font-family:	Arial, Helvetica, sans-serif;
+		font-size:		87.5%;
+		background:		#F6F6F6;
+		}
+		body > .ui-layout-pane { /* Page Layout Only */
+			background:		#F6F6F6 !important;
+		}
+
+	#dialogBox {
+		overflow:	hidden;	/* eliminate space for scrollbar in dialog - not needed when using a layout */
+		display:	none;
+		padding:	0;		/* nullify ui-widget-content */
+		padding-top: 4px;	/* add some white-space below titlebar for cosmetics */
+		/* COULD add a border and/or padding if desire a different look...
+		padding:	6px;
+		border:		1px solid #BBB;
+		*/
+	}
+	#dialogBox {
+		/*
+		 *	THIS HACK FIXES A DIALOG BOX POSITIONING BUG
+		 *	prevents incorrect top/left values that are applied from taking effect
+		 *	This page now uses a patched version of UI 1.8.1, so this hack no longer required
+		 *	SEE UI Ticket #5662 - http://dev.jqueryui.com/ticket/5662#comment:3 
+		top:		0 !important;
+		left:		0 !important;
+		 */
+		/* background:	#AFA; DEBUGGING */
+		/*position:	relative; - triggers resizeable._alsoResize bug when using Opera */
+		}
+		#dialogBox .ui-widget-content {
+			/* nullify ui-widget-content bg-image - but KEEP widget bg-color */
+			background-image: none;
+		}
+		#dialogBox .ui-layout-pane {
+			/* start by removing all padding & scrolling */
+			padding:	0;
+			overflow:	hidden;
+		}
+		#dialogBox .pane-header ,
+		#dialogBox .ui-layout-content ,
+		#dialogBox .ui-layout-south {
+			padding:	5px 10px;
+		}
+		#dialogBox .pane-header {
+			border-width:	0 0 1px; /* nullify ui-widget-content border, except bottom */
+		}
+		#dialogBox .pane-footer {
+			border-width:	1px 0 0; /* nullify ui-widget-content border, except top */
+			font-size:		.85em;
+			font-weight:	normal;
+			padding:		2px 10px 4px;
+		}
+		#dialogBox .ui-layout-content {
+			border:			0; /* nullify ui-widget-content border - 'pane' already has this */
+			overflow:		auto;
+		}
+		#dialogBox .ui-layout-south {
+			 /* has ui-widget-header for cosmetics - override defaults */
+			 font-weight:	normal; /* NOT bold in statusbar */
+			 font-size:		.85em;	/* smaller text */
+			 padding-top:	2px;	/* nice and small */
+			 padding-bottom:3px;
+		}
+		#dialogBox .ui-layout-resizer-west {
+			/* NOTE: SOMETHING in the theme CSS is setting opacity here */
+			opacity:	.01;
+			filter:		alpha(opacity=1);
+			background: #F00 url(img/resizable-w.gif) no-repeat 0 center;
+		}
+		#dialogBox .ui-layout-resizer-west-closed {
+			background-image: url(img/resizable-e.gif); /* looks better */
+			border:			1px solid #6C0;
+			border-width:	1px 0;
+			opacity:		.70;
+			filter:			alpha(opacity=70);
+		}
+		#dialogBox .ui-layout-resizer-dragging ,
+		#dialogBox .ui-layout-resizer-sliding ,
+		#dialogBox .ui-layout-resizer:hover {
+			opacity:		1;
+			filter:			alpha(opacity=100);
+			}
+			#dialogBox .ui-layout-toggler {
+				/*background:	#CCC;*/
+			}
+
+	</style> 
+
+	<script type="text/javascript" src="js/jquery.js"></script> 
+	<script type="text/javascript" src="js/jquery-ui.js"></script> 
+	<script type="text/javascript" src="js/jquery.layout.js"></script>
+
+    <script type="text/javascript" src="js/themeswitchertool.js"></script> 
+	<script type="text/javascript" src="js/debug.js"></script>
+
+	<script type="text/javascript">
+
+	var
+	//	page has a simple layout 
+		pageLayout_settings = {
+			applyDefaultStyles:	true
+		,	initClosed:			true
+		,	north__initClosed:	false
+		}
+	//	dialog-box contains a layout
+	,	dialogLayout
+	,	dialogLayout_settings = {
+			zIndex:				0		// HANDLE BUG IN CHROME - required if using 'modal' (background mask)
+		,	resizeWithWindow:	false	// resizes with the dialog, not the window
+		,	spacing_open:		6
+		,	spacing_closed:		6
+		,	west__size:			'30%' 
+		,	west__minSize:		100 
+		,	west__maxSize:		300 
+		,	south__size:		'auto' 
+		,	south__closable:	false 
+		,	south__resizable:	false 
+		,	south__slidable:	false 
+		//,	applyDefaultStyles:		true // DEBUGGING
+		}
+	; 
+
+	$(document).ready(function(){ 
+
+		// simple page layout
+		$('body').layout( pageLayout_settings );
+
+		// dialogBox dialog 
+		$("#dialogBox").dialog({ 
+			title:		'Dialog Title'
+		,	width:		Math.floor($('body').width()  * .70)
+		,	height:		Math.floor($('body').height() * .65)
+		,	autoOpen:	true
+		,	closeOnEsc:	true
+		//,	modal:		true
+		,	open:		function() {
+							if (!dialogLayout)
+								// init layout *the first time* dialog opens
+								dialogLayout = $("#dialogBox").layout( dialogLayout_settings );
+							else
+								// just in case - probably not required
+								dialogLayout.resizeAll();
+						}
+		,	resize:		function(){ if (dialogLayout) dialogLayout.resizeAll(); }
+		});
+
+		// Dialog Link 
+		$('#dialogOpener').click(function(){ 
+			$('#dialogBox').dialog('open'); 
+			return false; 
+		}); 
+
+		addThemeSwitcher('body > .ui-layout-north',{ top: '13px', right: '20px' });
+
+	});
+
+	</script>
+
+</head> 
+<body> 
+
+<!-- SIMPLE PAGE-LAYOUT -->
+<div class="ui-layout-north" style="text-align: center;">
+	<button id="dialogOpener"><B>Open Dialog</B></button>
+	<!--
+	&nbsp; &nbsp; &nbsp;
+	<BUTTON onClick="$('#dialogBox').css('position','relative')">Fix Opera</BUTTON>
+	-->
+	&nbsp; &nbsp; &nbsp;
+	<button onClick="if (dialogLayout) dialogLayout.resizeAll()">Refresh Dialog Layout</button>
+	&nbsp; &nbsp; &nbsp;
+	<button onClick="removeUITheme()">Remove UI Theme</button>
+</div>
+<div class="ui-layout-center"> Center-pane
+	<p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p>
+	<p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p>
+	<p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p>
+	<p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p>
+	<p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p>
+	<p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p>
+	<p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p><p>...</p>
+</div>
+<div class="ui-layout-south"> South-pane </div>
+<div class="ui-layout-west">  West-pane  </div>
+<div class="ui-layout-east">  East-pane  </div>
+
+
+<!-- DIALOG BOX w/ INNER-LAYOUT -->
+<div id="dialogBox"> 
+
+	<div class="ui-layout-west ui-widget-content ui-corner-all"> 
+		<div class="pane-header ui-state-active">West Header</div>
+		<div class="ui-layout-content ui-widget-content">
+			Scrolling content...
+			<p>...<br>...<br>...<br>...<br>...<br>...<br>...<br>...<br>...<br>...<br>...<br>...</p>
+		</div>
+		<div class="pane-footer ui-state-default">Center Footer</div>
+	 </div> 
+
+	<div class="ui-layout-center ui-widget-content ui-corner-all"> 
+		<div class="pane-header ui-state-active">Center Header</div>
+		<div class="ui-layout-content ui-widget-content" style="border: 0;">
+			Scrolling content...
+			<p><a href="http://layout.jquery-dev.com/demos.cfm">Go to the Demos page</a></p>
+			<!-- THIS PROBLEM IS NOW FIXED IN UI 1.8.4
+			<P>NOTE: This demo is using a patched copy of jquery-ui-1.8.1 to 
+				fix <u>2 bugs</u> in the UI Resizable._alsoResize method used by the dialog. 
+				One of the bugs is Opera-specific.</P> 
+			<P>I committed a patch the fixes both bugs, so the issues should be fixed in the next 
+				maintentance release of UI (1.8.3?)</P>
+			<P><B>In the meantime</B>, both bugs can be avoided by adding an extra DIV inside the dialog
+				to contain the layout - set it's height &amp; width to 100%.
+				If you need assistance with this, ask in the Layout discussion forum.
+			-->
+			<p style="overflow: hidden;"><input type="text" value="Input Test..." style="width: 99%;">
+			<p><select>
+				<option value="19">Picklist Test</option>
+				<option value="17">tropical storm</option>
+				<option value="18">hurricane</option>
+				<option value="19">severe thunderstorms</option>
+				<option value="20">thunderstorms</option>
+				<option value="21">mixed rain and snow</option>
+				<option value="22">mixed rain and sleet</option>
+				<option value="23">mixed snow and sleet</option>
+				<option value="24">freezing drizzle</option>
+				<option value="25">drizzle</option>
+				<option value="26">freezing rain</option>
+				<option value="27">showers</option>
+				<option value="28">showers</option>
+				<option value="29">snow flurries</option>
+				<option value="30">light snow showers</option>
+				<option value="31">blowing snow</option>
+				<option value="32">snow</option>
+				<option value="33">hail</option>
+				<option value="34">sleet</option>
+				<option value="35">dust</option>
+				<option value="36">foggy</option>
+				<option value="37">haze</option>
+				<option value="38">smoky</option>
+				<option value="39">blustery</option>
+				<option value="40">windy</option>
+				<option value="41">cold</option>
+				<option value="42">cloudy</option>
+				<option value="43">mostly cloudy (night)</option>
+				<option value="44">mostly cloudy (day)</option>
+				<option value="45">partly cloudy (night)</option>
+				<option value="46">partly cloudy (day)</option>
+				<option value="47">clear (night)</option>
+				<option value="48">sunny</option>
+				<option value="49">fair (night)</option>
+				<option value="50">fair (day)</option>
+				<option value="51">mixed rain and hail</option>
+				<option value="52">hot</option>
+				<option value="53">isolated thunderstorms</option>
+				<option value="54">scattered thunderstorms</option>
+				<option value="55">scattered thunderstorms</option>
+				<option value="56">scattered showers</option>
+				<option value="57">heavy snow</option>
+				<option value="58">scattered snow showers</option>
+				<option value="59">heavy snow</option>
+				<option value="60">partly cloudy</option>
+				<option value="61">thundershowers</option>
+				<option value="62">snow showers</option>
+				<option value="63">isolated thundershowers</option>
+			</select></p>
+			<p>	...<br>...<br>...<br>...<br>...<br>...<br>...<br>...<br>...<br>...<br>...<br>...<br>
+				...<br>...<br>...<br>...<br>...<br>...<br>...<br>...<br>...<br>...<br>...<br>...<br>
+				...<br>...<br>...<br>...<br>...<br>...<br>...<br>...<br>...<br>...<br>...<br>...</p>
+		</div>
+		<div class="pane-footer ui-state-default">Center Footer</div>
+	</div> 
+
+	<div class="ui-layout-south ui-widget-header ui-corner-all"> 
+		South Pane ( messages or statusbar )
+	</div>
+
+</div> 
+
+</body> 
+</html>

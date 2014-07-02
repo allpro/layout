@@ -1,0 +1,119 @@
+<!DOCTYPE html> 
+<html> 
+<head>
+	<title>Layout with Custom Togglers</title>
+
+	<link type="text/css" rel="stylesheet" href="css/layout-default.css" />
+
+	<style type="text/css">
+
+	/* custom toggler-button styles */
+	.ui-layout-toggler-west, 
+	.ui-layout-toggler-south {
+		border:		0;
+	}
+	.ui-layout-toggler-west div {
+		width:	8px;
+		height:	35px; /* 3x 35 = 105 total height */
+	}
+	.ui-layout-toggler-south div {
+		width:	35px; /* 3x 35 = 105 total width */
+		height:	8px;
+		float:	left; /* keep on 1-line */
+	}
+	.btnToggler	{ background: #00C; }
+	.btnExpand	{ background: #090; }
+	.btnReset	{ background: #C00; }
+
+	</style>
+
+	<script type="text/javascript" src="js/jquery.js"></script>
+	<script type="text/javascript" src="js/jquery-ui.js"></script>
+	<script type="text/javascript" src="js/jquery.layout.js"></script>
+
+	<script type="text/javascript">
+
+	// TOGGLER CUSTOMIZATION SETTINGS
+	var
+		westDefaultSize		= 320
+	,	southDefaultSize	= "auto"
+	,	toggleButtons		= '<div class="btnToggler"></div>'
+							+ '<div class="btnReset"></div>'
+							+ '<div class="btnExpand"></div>'
+	,	myLayout
+	;
+
+	$(document).ready(function(){
+
+		// CREATE THE LAYOUT
+		myLayout = $('body').layout({
+			resizeWhileDragging: 			true
+		,	fxName:							"none"
+		,	west__size:						westDefaultSize
+		,	south__size:					southDefaultSize
+		,	spacing_open:					8
+		,	spacing_closed:					8
+		,	north__spacing_open:			0
+		,	west__togglerLength_closed:		105
+		,	west__togglerLength_open:		105
+		,	south__togglerLength_closed:	105
+		,	south__togglerLength_open:		105
+		,	west__togglerContent_closed:	toggleButtons
+		,	west__togglerContent_open:		toggleButtons
+		,	south__togglerContent_closed:	toggleButtons
+		,	south__togglerContent_open:		toggleButtons
+		});
+
+		// SET OBJECT POINTERS FOR CONVENIENCE
+		var
+			$westToggler  = myLayout.togglers.west
+		,	$southToggler = myLayout.togglers.south
+		;
+
+		// UN-BIND DEFAULT TOGGLER FUNCTIONALITY
+		$westToggler.unbind("click");
+		$southToggler.unbind("click");
+
+		// BIND CUSTOM WEST METHODS
+		$westToggler.find(".btnToggler")	.click( toggleWest );
+		$westToggler.find(".btnExpand")		.click( expandWest );
+		$westToggler.find(".btnReset")		.click( resetWest );
+
+		// BIND CUSTOM SOUTH METHODS
+		$southToggler.find(".btnToggler")	.click( toggleSouth );
+		$southToggler.find(".btnExpand")	.click( expandSouth );
+		$southToggler.find(".btnReset")		.click( resetSouth );
+
+		// ADD TOOLTIPS TO CUSTOM BUTTONS
+		$(".btnExpand").attr("title", "Expand to full size");
+		$(".btnReset") .attr("title", "Reset size to default");
+
+	});
+
+	// CUSTOM WEST METHODS
+	function toggleWest  (evt) { myLayout.toggle("west"); evt.stopPropagation(); };
+	function expandWest  (evt) { sizePane("west", 500); };
+	function resetWest   (evt) { sizePane("west", westDefaultSize); };
+
+	// CUSTOM SOUTH METHODS
+	function toggleSouth (evt) { myLayout.toggle("south"); evt.stopPropagation(); };
+	function expandSouth (evt) { sizePane("south", 9999); }; // ie, make as big as possible
+	function resetSouth  (evt) { sizePane("south", southDefaultSize); };
+
+	// GENERIC HELPER FUNCTION
+	function sizePane (pane, size) {
+		myLayout.sizePane(pane, size);
+		myLayout.open(pane); // open pane if not already
+	};
+
+    </script> 
+
+</head>
+<body>
+	<div class="ui-layout-center">Center</div> 
+	<div class="ui-layout-north">North</div> 
+	<div class="ui-layout-south">South</div> 
+	<div class="ui-layout-east">East</div> 
+	<div class="ui-layout-west">West</div> 
+</body>
+</html>
