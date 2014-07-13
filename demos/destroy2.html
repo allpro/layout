@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html>
-<HEAD>
+<head>
 	<title>Layout Destroy Demo #2</title>
 
-	<link type="text/css" rel="stylesheet" href="css/layout-default.css">
+	<link type="text/css" rel="stylesheet" href="../source/stable/layout-default.css">
 
 	<style type="text/css">
 
@@ -16,7 +16,7 @@
 
 	<script type="text/javascript" src="js/jquery.js"></script>
 	<script type="text/javascript" src="js/jquery-ui.js"></script>
-	<script type="text/javascript" src="js/jquery.layout_and_plugins.js"></script>
+	<script type="text/javascript" src="../source/stable/jquery.layout_and_plugins.js"></script>
 	<script type="text/javascript" src="js/debug.js"></script>
 	<script type="text/javascript">
 
@@ -84,8 +84,8 @@
 
 	</script>
 
-</HEAD>
-<BODY>
+</head>
+<body>
 
 <div class="ui-layout-north">Outer North &nbsp; &nbsp;
 
@@ -138,13 +138,13 @@
 				<input id="autoLoadState" type="checkbox" value="1" checked="checked" disabled="disabled"
 				onchange="var o = pageLayout.options.stateManagement; o.autoSave=this.checked; if (this.checked) o.enabled=true;" 
 				onclick="this.blur(); this.focus();">
-				<label for="autoLoadState" style="color: #888;"><b>options.stateManagement.autoLoad</b></label>
+				<label for="autoLoadState" style="color: #888;"><B>options.stateManagement.autoLoad</B></label>
 				<br> &nbsp; &nbsp; &nbsp; load-state when layout created - see options
 				<br><br>
 				<input id="autoSaveState" type="checkbox" value="1" checked="checked"
 				onchange="var o = pageLayout.options.stateManagement; o.autoSave=this.checked; if (this.checked) o.enabled=true;" 
 				onclick="this.blur(); this.focus();">
-				<label for="autoSaveState"><b>options.stateManagement.autoSave</b></label>
+				<label for="autoSaveState"><B>options.stateManagement.autoSave</B></label>
 				<br> &nbsp; &nbsp; &nbsp; save-state on window.unload &amp; layout.destroy()
 				<br><br>
 				<button onClick="pageLayout.deleteCookie()">pageLayout.deleteCookie()</button>
@@ -177,5 +177,5 @@
 
 <div class="ui-layout-south">Outer South</div>
 
-</BODY>
+</body>
 </html>

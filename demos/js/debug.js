@@ -312,34 +312,6 @@ function showState (Layout, key, debugOpts) {
 };
 
 
-/**
- *	addThemeSwitcher
- *
- *	Remove the cookie set by the UI Themeswitcher to reset a page to default styles
- *
- *	Dependancies: /lib/js/themeswitchertool.js
- */
-function addThemeSwitcher ( container, position ) {
-	var pos = { top: '10px', right: '10px', zIndex: 10 };
-	$('<div id="themeContainer" style="position: absolute; overflow-x: hidden;"></div>')
-		.css( $.extend( pos, position ) )
-		.appendTo( container || 'body')
-		.themeswitcher()
-	;
-};
-
-/**
- *	removeUITheme
- *
- *	Remove the cookie set by the UI Themeswitcher to reset a page to default styles
- */
-function removeUITheme ( cookieName, removeCookie ) {
-	$('link.ui-theme').remove();
-	$('.jquery-ui-themeswitcher-title').text( 'Switch Theme' );
-	if (removeCookie !== false)
-		$.cookie( cookieName || 'jquery-ui-theme', null );
-};
-
 
 
 function debugWindow ( content, options ) {
