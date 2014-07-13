@@ -1,8 +1,8 @@
 /**
  * @preserve
- * jquery.layout 1.4.0
- * $Date: 2014-07-01 08:00:00 (Sat, 1 Jul 2014) $
- * $Rev: 1.0400 $
+ * jquery.layout 1.4.1
+ * $Date: 2014-07-13 08:00:00 (Sat, 13 Jul 2014) $
+ * $Rev: 1.0401 $
  *
  * Copyright (c) 2014 Kevin Dalman (http://jquery-dev.com)
  * Based on work by Fabrizio Balliano (http://www.fabrizioballiano.net)
@@ -65,8 +65,8 @@ var	min		= Math.min
  */
 $.layout = {
 
-	version:	"1.4.0"
-,	revision:	1.0400 // eg: 1.4.0 final = 1.0400 - major(n+).minor(nn)+patch(nn+)
+	version:	"1.4.1"
+,	revision:	1.0401 // eg: 1.4.1 final = 1.0401 - major(n+).minor(nn)+patch(nn+)
 
 	// $.layout.browser REPLACES $.browser
 ,	browser:	{} // set below
@@ -638,6 +638,8 @@ var u = navigator.userAgent.toLowerCase()
 ,	b = m[1] || ""
 ,	v = m[2] || 0
 ,	ie = b === "msie"
+,	cm = document.compatMode
+,	bm = !ie || !cm || cm === 'CSS1Compat' || $.support.boxModel || false
 ;
 $.layout.browser = {
 	version:	v
@@ -645,13 +647,13 @@ $.layout.browser = {
 ,	webkit:		b === "chrome"	// chrome = webkit
 ,	msie:		ie
 ,	isIE6:		ie && v == 6
-	// ONLY IE reverts to old box-model - update for older jQ onReady
-,	boxModel:	!ie || $.support.boxModel !== false
+	// ONLY IE reverts to old box-model - Note that compatMode was deprecated as of IE8
+,	boxModel:	bm
 };
 if (b) $.layout.browser[b] = true; // set CURRENT browser
 /*	OLD versions of jQuery only set $.support.boxModel after page is loaded
  *	so if this is IE, use support.boxModel to test for quirks-mode (ONLY IE changes boxModel) */
-if (ie) $(function(){ $.layout.browser.boxModel = $.support.boxModel; });
+if (!bm && !cm) $(function(){ $.layout.browser.boxModel = $.support.boxModel; });
 
 
 // DEFAULT OPTIONS
@@ -3417,6 +3419,7 @@ $.fn.layout = function (opts) {
 			.addClass( rClass+_closed +" "+ rClass+_pane+_closed )
 		;
 		// handle already-hidden panes in case called by swap() or a similar method 
+
 		if (s.isHidden) $R.hide(); // hide resizer-bar 
 
 		// DISABLE 'resizing' when closed - do this BEFORE bindStartSlidingEvents?
