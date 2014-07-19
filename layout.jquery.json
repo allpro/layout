@@ -2,14 +2,14 @@
 	"name": "layout",
 	"title": "UI Layout",
 	"description": "jQuery plugin for advanced UI layouts with sizable, collapsible, nested panels.",
-	"version": "1.4.0",
+	"version": "1.4.1",
 	"keywords": [
 		"ui",
 		"layout"
 	],
 	"author": {
 		"name": "Kevin Dalman",
-		"email": "kevin@jquery-dev.com",
+		"email": "kevin@jquery-dev.com"
 	},
 	"maintainers": [
 		{	"name": "Kevin Dalman",
