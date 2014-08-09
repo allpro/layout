@@ -2,7 +2,7 @@
 	"name": "layout",
 	"title": "UI Layout",
 	"description": "jQuery plugin for advanced UI layouts with sizable, collapsible, nested panels.",
-	"version": "1.4.1",
+	"version": "1.4.2",
 	"keywords": [
 		"ui",
 		"layout"
