@@ -1,0 +1,221 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+
+	<title>Save Layout State Demo</title>
+
+	<link type="text/css" rel="stylesheet" href="/lib/css/layout-default-latest.css" />
+
+	<style type="text/css">
+	p.button {
+		padding-left:	35ex;
+		}
+		button	{
+			min-width:		32ex;
+			text-align:		left;
+			vertical-align:	middle;
+			padding:		2px 2.5ex;
+			margin-left:	-40ex;
+			position:		relative;
+		}
+	.hide	{ display:	none; }
+	</style>
+
+	<script type="text/javascript" src="js/jquery.js"></script>
+	<script type="text/javascript" src="js/jquery-ui.js"></script>
+	<script type="text/javascript" src="js/debug.js"></script>
+	<script type="text/javascript" src="../source/stable/jquery.layout.js"></script>
+	<script type="text/javascript" src="../source/stable/plugins/jquery.layout.state.js"></script>
+
+	<script type="text/javascript">
+
+	function customSaveState (Instance, state, options, name) {
+		// get the state and save it in a database...
+		var state_JSON = Instance.readState();
+		// use Layout utilities to stringify the JSON - IF NECESSARY
+		var state_String = Instance.encodeJSON( state_JSON );
+		// now can save the data in the database string field
+	};
+
+	function customLoadState (Instance, state, options, name) {
+		/* if state loaded as a 'string', convert back to a hash
+		var savedState_String = "{ west: { size: 200 } }";
+		var savedState_JSON = Instance.decodeJSON( state_JSON );
+		Instance.loadState( savedState_JSON, true ); // true = animate open/close/resize
+		*/
+
+		// create a custom 'load state' - this could come from the server
+		var savedState_JSON = {
+			east: {
+				initClosed:	false
+			,	size:		350
+			}
+		,	south: {
+				initClosed:	false
+			}
+		}
+
+		// load the custom state
+		Instance.loadState( savedState_JSON, false ); // false = DO NOT animate open/close/resize (default)
+	};
+
+	function toggleAll () {
+		$.each(["north","west","east","south"], function(i, pane){
+			myLayout.toggle( pane );
+		});
+	};
+
+	var myLayout;
+
+	$(document).ready( function() {
+
+		myLayout = $("body").layout({
+			initClosed:					true
+		,	west__size:					150
+		,	east__size:					150
+		,	east__fxSpeed:				1000
+		,	west__fxSpeed:				1000
+		,	livePaneResizing:			true
+		,	animatePaneSizing:			true // changes in pane-sizes when resetting state will be animated
+
+		,	stateManagement__enabled:	true // enable stateManagement - automatic cookie load & save enabled by default
+		/*	sample formats for customizing stateManagement.keys
+		,	stateManagement__stateKeys:	"west.size,east.size,west.isClosed,east.isClosed"
+		,	stateManagement__stateKeys:	"west.size,north.size"		// state-keys in sub-key format
+		,	stateManagement__stateKeys:	"west__size,north__size"	// state-keys in flat-format
+		*/
+
+		/*	enable this block to use the CUSTOM state-management functions above
+		,	stateManagement__autoLoad:	false // disable automatic cookie-load
+		,	stateManagement__autoSave:	false // disable automatic cookie-save
+		,	onload:						customLoadState // run custom state-code when Layout loads
+		,	onunload:					customSaveState // ditto when page unloads OR Layout is 'destroyed'
+		*/
+		});
+		//debugData( myLayout.options.stateManagement, 'options.stateManagement' );
+		//debugData( myLayout.options.west.fxSpeed, 'options.west.fxSpeed' );
+
+		// sync checkbox with layout state options
+		var state = myLayout.options.stateManagement;
+		$('#autoSaveState').attr("checked", state.enabled && state.autoSave);
+
+		// save ALL states of ALL panes to test loadState (reset button)
+		window.fullState = myLayout.readState(
+			"north.size,south.size,east.size,west.size,"+
+			"north.isClosed,south.isClosed,east.isClosed,west.isClosed,"+
+			"north.isHidden,south.isHidden,east.isHidden,west.isHidden"
+		);
+
+		testState = {
+			north: {
+				size:		80
+			,	initClosed:	false
+			,	initHidden:	false
+			}
+		,	south: {
+				size:		80
+			,	initClosed:	false
+			,	initHidden:	false
+			}
+		,	east: {
+				size:		375
+			,	initClosed:	false
+			,	initHidden:	false
+			}
+		,	west: {
+				size:		375
+			,	initClosed:	false
+			,	initHidden:	false
+			}
+		}
+
+	});
+
+	</script>
+
+</head>
+<body>
+
+<div class="ui-layout-center hide"><b>Center pane</b>
+	
+	<p class="button"><button onclick="toggleAll()">Toggle All Panes</button></p>
+	<p>
+		Change the 'state' by opening some panes and adjusting their size,
+		then <a href="#" onclick="self.location.reload(); return false;"><b>Reload</b></a>.
+		The page should reload with the panes exactly as they were.
+	</p>
+	<p>
+		<input id="autoLoadState" type="checkbox" value="1" checked="checked" disabled="disabled"
+		onchange="var o = myLayout.options.stateManagement; o.autoSave=this.checked; if (this.checked) o.enabled=true;" onclick="this.blur(); this.focus();" />
+		<label for="autoLoadState" style="color: #888;"><b>options.stateManagement.autoLoad</b></label> &ndash; <b>loadState</b> when layout created? (can't change here)
+		<br />
+		<input id="autoSaveState" type="checkbox" value="1" checked="checked"
+		onchange="var o = myLayout.options.stateManagement; o.autoSave=this.checked; if (this.checked) o.enabled=true;" onclick="this.blur(); this.focus();" />
+		<label for="autoSaveState"><b>options.stateManagement.autoSave</b></label> &ndash; <b>saveState</b> on window.unload ?
+	</p>
+
+	<p class="button"><button onclick="var s=myLayout.readState(), d=this.innerHTML; console.data(s,d); debugData(s,d);"
+		>myLayout.readState()</button>
+		Show <u>current</u> state-data from the layout
+	</p>
+	<p class="button"><button onclick="var s=myLayout.state.stateData, d=this.innerHTML; console.data(s,d); debugData(s,d);"
+		>myLayout.state.stateData</button>
+		Show state-data stored in layout.state object - as last read-from or saved-to the state-cookie
+	</p>
+
+	<p class="button"><button onclick="var c=myLayout.readCookie(), d=this.innerHTML; if (c) { console.data(c,d); debugData(c,d); } else alert('No Cookie');"
+		>myLayout.readCookie()</button>
+		Show data currently saved in the state-cookie
+	</p>
+	<p class="button"><button onclick="var c=myLayout.saveCookie(), d=this.innerHTML; console.data(c,d); debugData(c,d);"
+		>myLayout.saveCookie()</button>
+		Update the state-cookie with current layout state-data
+	</p>
+	<p class="button"><button onclick="myLayout.deleteCookie(); myLayout.state.stateData = {}; alert('Cookie deleted \n\nstate.stateData cleared')"
+		>myLayout.deleteCookie()</button>
+		Delete the state-cookie
+	</p>
+
+	<p class="button"><button onclick="myLayout.deleteCookie(); myLayout.options.stateManagement.autoSave=false; $('#autoSaveState').attr('checked', false); self.location.reload();"
+		>Reset Page to Default</button>
+		&gt RELOAD page with <u>default layout settings</u> (no state)...
+	</p>
+	<p style="margin: -.75em 0 -.75em 1.5em;">&nbsp; &nbsp; This button triggers 3 steps:</p>
+	<ol style="margin-left: 1.5em;">
+		<li><b>myLayout.deleteCookie()</b> &mdash; remove the existing layout cookie</li>
+		<li><b>myLayout.options.stateManagement.autoSave = false</b> &mdash; prevent saving new cookie on window.unload</li>
+		<li><b>Reload the page</b> &mdash; default layout settings used onLoad because there is no cookie</li>
+	</ol>
+
+	<p class="button"><button onclick="myLayout.loadState( window.fullState )"
+									  >myLayout.loadState( fullState )</button>
+		&gt RESET layout to 
+		<a href="#" onclick="debugData(window.fullState,'fullState'); return false;">as it was when loaded</a> (instant, no reload)
+	<br /><button onclick="myLayout.loadState( window.fullState, {animateLoad: true})"
+						  >myLayout.loadState( fullState, { animateLoad: true })</button>
+		&nbsp; &gt ditto &ndash; but using pane animations
+	</p>
+	<p style="margin: -.75em 0 -.75em 1.5em;">&nbsp; &nbsp; These buttons loads a state-hash that was created onLoad:</p>
+	<ul style="margin-left: 1.5em;">
+		<li><b>window.fullState = myLayout.readState()</b> &mdash; saved after layout loaded</li>
+		<li><b>myLayout.loadState( fullState, true )</b> &mdash; restore the original state &ndash; using animation</li>
+	</ul>
+
+	<p class="button"><button onclick="myLayout.loadState(testState, {animateLoad: true})"
+		>myLayout.loadState( testState )</button>
+		Test loading of a specific state object
+	</p>
+
+	<p>&nbsp;</p>
+</div>
+
+<div class="ui-layout-north hide">North pane</div>
+
+<div class="ui-layout-west hide">West pane</div>
+
+<div class="ui-layout-south hide">South pane</div>
+
+<div class="ui-layout-east hide">East pane</div>
+
+</body>
+</html>

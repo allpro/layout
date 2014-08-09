@@ -1,8 +1,8 @@
 /**
  * @preserve
- * jquery.layout 1.4.1
- * $Date: 2014-07-13 08:00:00 (Sat, 13 Jul 2014) $
- * $Rev: 1.0401 $
+ * jquery.layout 1.4.2
+ * $Date: 2014-08-09 08:00:00 (Sat, 9 Aug 2014) $
+ * $Rev: 1.0402 $
  *
  * Copyright (c) 2014 Kevin Dalman (http://jquery-dev.com)
  * Based on work by Fabrizio Balliano (http://www.fabrizioballiano.net)
@@ -65,8 +65,8 @@ var	min		= Math.min
  */
 $.layout = {
 
-	version:	"1.4.1"
-,	revision:	1.0401 // eg: 1.4.1 final = 1.0401 - major(n+).minor(nn)+patch(nn+)
+	version:	"1.4.2"
+,	revision:	1.0402 // eg: 1.4.1 final = 1.0401 - major(n+).minor(nn)+patch(nn+)
 
 	// $.layout.browser REPLACES $.browser
 ,	browser:	{} // set below
@@ -5134,50 +5134,6 @@ $.fn.layout = function (opts) {
 
 
 /**
- * jquery.layout.state 1.0
- * $Date: 2011-07-16 08:00:00 (Sat, 16 July 2011) $
- *
- * Copyright (c) 2012 
- *   Kevin Dalman (http://allpro.net)
- *
- * Dual licensed under the GPL (http://www.gnu.org/licenses/gpl.html)
- * and MIT (http://www.opensource.org/licenses/mit-license.php) licenses.
- *
- * @requires: UI Layout 1.3.0.rc30.1 or higher
- * @requires: $.ui.cookie (above)
- *
- * @see: http://groups.google.com/group/jquery-ui-layout
- */
-/*
- *	State-management options stored in options.stateManagement, which includes a .cookie hash
- *	Default options saves ALL KEYS for ALL PANES, ie: pane.size, pane.isClosed, pane.isHidden
- *
- *	// STATE/COOKIE OPTIONS
- *	@example $(el).layout({
-				stateManagement: {
-					enabled:	true
-				,	stateKeys:	"east.size,west.size,east.isClosed,west.isClosed"
-				,	cookie:		{ name: "appLayout", path: "/" }
-				}
-			})
- *	@example $(el).layout({ stateManagement__enabled: true }) // enable auto-state-management using cookies
- *	@example $(el).layout({ stateManagement__cookie: { name: "appLayout", path: "/" } })
- *	@example $(el).layout({ stateManagement__cookie__name: "appLayout", stateManagement__cookie__path: "/" })
- *
- *	// STATE/COOKIE METHODS
- *	@example myLayout.saveCookie( "west.isClosed,north.size,south.isHidden", {expires: 7} );
- *	@example myLayout.loadCookie();
- *	@example myLayout.deleteCookie();
- *	@example var JSON = myLayout.readState();	// CURRENT Layout State
- *	@example var JSON = myLayout.readCookie();	// SAVED Layout State (from cookie)
- *	@example var JSON = myLayout.state.stateData;	// LAST LOADED Layout State (cookie saved in layout.state hash)
- *
- *	CUSTOM STATE-MANAGEMENT (eg, saved in a database)
- *	@example var JSON = myLayout.readState( "west.isClosed,north.size,south.isHidden" );
- *	@example myLayout.loadState( JSON );
- */
-
-/**
  *	UI COOKIE UTILITY
  *
  *	A $.cookie OR $.ui.cookie namespace *should be standard*, but until then...
@@ -5193,14 +5149,15 @@ $.ui.cookie = {
 	acceptsCookies: !!navigator.cookieEnabled
 
 ,	read: function (name) {
-		var	c		= document.cookie
-		,	cs		= c ? c.split(';') : []
-		,	pair	// loop var
+		var
+			c	= document.cookie
+		,	cs	= c ? c.split(';') : []
+		,	pair, data, i
 		;
-		for (var i=0, n=cs.length; i < n; i++) {
-			pair = $.trim(cs[i]).split('='); // name=value pair
-			if (pair[0] == name) // found the layout cookie
-				return decodeURIComponent(pair[1]);
+		for (i=0; pair=cs[i]; i++) {
+			data = $.trim(pair).split('='); // name=value => [ name, value ]
+			if (data[0] == name) // found the layout cookie
+				return decodeURIComponent(data[1]);
 		}
 		return null;
 	}
@@ -5253,11 +5210,55 @@ if (!$.cookie) $.cookie = function (k, v, o) {
 };
 
 
+/**
+ * jquery.layout.state 1.1
+ * $Date: 2014-08-09 08:00:00 (Sat, 9 August 2014) $
+ *
+ * Copyright (c) 2014 
+ *   Kevin Dalman (http://allpro.net)
+ *
+ * Dual licensed under the GPL (http://www.gnu.org/licenses/gpl.html)
+ * and MIT (http://www.opensource.org/licenses/mit-license.php) licenses.
+ *
+ * @requires: UI Layout 1.3.0.rc30.1 or higher
+ * @requires: $.ui.cookie (above)
+ *
+ * @see: http://groups.google.com/group/jquery-ui-layout
+ */
+
+/*
+ *	State-management options stored in options.stateManagement, which includes a .cookie hash
+ *	Default options saves ALL KEYS for ALL PANES, ie: pane.size, pane.isClosed, pane.isHidden
+ *
+ *	// STATE/COOKIE OPTIONS
+ *	@example $(el).layout({
+				stateManagement: {
+					enabled:	true
+				,	stateKeys:	"east.size,west.size,east.isClosed,west.isClosed"
+				,	cookie:		{ name: "appLayout", path: "/" }
+				}
+			})
+ *	@example $(el).layout({ stateManagement__enabled: true }) // enable auto-state-management using cookies
+ *	@example $(el).layout({ stateManagement__cookie: { name: "appLayout", path: "/" } })
+ *	@example $(el).layout({ stateManagement__cookie__name: "appLayout", stateManagement__cookie__path: "/" })
+ *
+ *	// STATE/COOKIE METHODS
+ *	@example myLayout.saveCookie( "west.isClosed,north.size,south.isHidden", {expires: 7} );
+ *	@example myLayout.loadCookie();
+ *	@example myLayout.deleteCookie();
+ *	@example var JSON = myLayout.readState();	// CURRENT Layout State
+ *	@example var JSON = myLayout.readCookie();	// SAVED Layout State (from cookie)
+ *	@example var JSON = myLayout.state.stateData;	// LAST LOADED Layout State (cookie saved in layout.state hash)
+ *
+ *	CUSTOM STATE-MANAGEMENT (eg, saved in a database)
+ *	@example var JSON = myLayout.readState( "west.isClosed,north.size,south.isHidden" );
+ *	@example myLayout.loadState( JSON );
+ */
+
 // tell Layout that the state plugin is available
 $.layout.plugins.stateManagement = true;
 
 //	Add State-Management options to layout.defaults
-$.layout.config.optionRootKeys.push("stateManagement");
 $.layout.defaults.stateManagement = {
 	enabled:		false	// true = enable state-management, even if not using cookies
 ,	autoSave:		true	// Save a state-cookie when page exits?
@@ -5276,8 +5277,11 @@ $.layout.defaults.stateManagement = {
 	,	secure:	false
 	}
 };
-// Set stateManagement as a layout-option, NOT a pane-option
+
+// Set stateManagement as a 'layout-option', NOT a 'pane-option'
 $.layout.optionsMap.layout.push("stateManagement");
+// Update config so layout does not move options into the pane-default branch (panes)
+$.layout.config.optionRootKeys.push("stateManagement");
 
 /*
  *	State Management methods
@@ -5595,6 +5599,7 @@ $.layout.state = {
 $.layout.onCreate.push( $.layout.state._create );
 $.layout.onUnload.push( $.layout.state._unload );
 
+})( jQuery );
 
 
 

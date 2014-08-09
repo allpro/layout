@@ -1,18 +1,102 @@
+// NOTE: For best readability, view with a fixed-width font and tabs equal to 4-chars
+;(function ($) {
+
+if (!$.layout) return;
+
+
 /**
- * @preserve jquery.layout.state 1.0
+ *	UI COOKIE UTILITY
+ *
+ *	A $.cookie OR $.ui.cookie namespace *should be standard*, but until then...
+ *	This creates $.ui.cookie so Layout does not need the cookie.jquery.js plugin
+ *	NOTE: This utility is REQUIRED by the layout.state plugin
+ *
+ *	Cookie methods in Layout are created as part of State Management 
+ */
+if (!$.ui) $.ui = {};
+$.ui.cookie = {
+
+	// cookieEnabled is not in DOM specs, but DOES works in all browsers,including IE6
+	acceptsCookies: !!navigator.cookieEnabled
+
+,	read: function (name) {
+		var
+			c	= document.cookie
+		,	cs	= c ? c.split(';') : []
+		,	pair, data, i
+		;
+		for (i=0; pair=cs[i]; i++) {
+			data = $.trim(pair).split('='); // name=value => [ name, value ]
+			if (data[0] == name) // found the layout cookie
+				return decodeURIComponent(data[1]);
+		}
+		return null;
+	}
+
+,	write: function (name, val, cookieOpts) {
+		var	params	= ""
+		,	date	= ""
+		,	clear	= false
+		,	o		= cookieOpts || {}
+		,	x		= o.expires  || null
+		,	t		= $.type(x)
+		;
+		if (t === "date")
+			date = x;
+		else if (t === "string" && x > 0) {
+			x = parseInt(x,10);
+			t = "number";
+		}
+		if (t === "number") {
+			date = new Date();
+			if (x > 0)
+				date.setDate(date.getDate() + x);
+			else {
+				date.setFullYear(1970);
+				clear = true;
+			}
+		}
+		if (date)		params += ";expires="+ date.toUTCString();
+		if (o.path)		params += ";path="+ o.path;
+		if (o.domain)	params += ";domain="+ o.domain;
+		if (o.secure)	params += ";secure";
+		document.cookie = name +"="+ (clear ? "" : encodeURIComponent( val )) + params; // write or clear cookie
+	}
+
+,	clear: function (name) {
+		$.ui.cookie.write(name, "", {expires: -1});
+	}
+
+};
+// if cookie.jquery.js is not loaded, create an alias to replicate it
+// this may be useful to other plugins or code dependent on that plugin
+if (!$.cookie) $.cookie = function (k, v, o) {
+	var C = $.ui.cookie;
+	if (v === null)
+		C.clear(k);
+	else if (v === undefined)
+		return C.read(k);
+	else
+		C.write(k, v, o);
+};
+
+
+/**
+ * jquery.layout.state 1.1
  * $Date: 2011-07-16 08:00:00 (Sat, 16 July 2011) $
  *
- * Copyright (c) 2010 
+ * Copyright (c) 2014 
  *   Kevin Dalman (http://allpro.net)
  *
  * Dual licensed under the GPL (http://www.gnu.org/licenses/gpl.html)
  * and MIT (http://www.opensource.org/licenses/mit-license.php) licenses.
  *
- * @dependancies: UI Layout 1.3.0.rc30.1 or higher
- * @dependancies: $.ui.cookie (above)
+ * @requires: UI Layout 1.3.0.rc30.1 or higher
+ * @requires: $.ui.cookie (above)
  *
- * @support: http://groups.google.com/group/jquery-ui-layout
+ * @see: http://groups.google.com/group/jquery-ui-layout
  */
+
 /*
  *	State-management options stored in options.stateManagement, which includes a .cookie hash
  *	Default options saves ALL KEYS for ALL PANES, ie: pane.size, pane.isClosed, pane.isHidden
@@ -42,79 +126,16 @@
  *	@example myLayout.loadState( JSON );
  */
 
-// NOTE: For best readability, view with a fixed-width font and tabs equal to 4-chars
-
-;(function ($) {
-
-if (!$.layout) return;
-
-
-/*
- *	GENERIC COOKIE/DATA MANAGEMENT
- *
- *	A $.cookie OR $.ui.cookie namespace *should be* standard.
- *	Until this is standard, I'll create my own $.ui.cookie methods!
- */
-$.ui.cookie = {
-
-	// TODO: is the cookieEnabled property fully cross-browser???
-	acceptsCookies: !!navigator.cookieEnabled
-
-,	read: function (name) {
-		var
-			c		= document.cookie
-		,	cs		= c ? c.split(';') : []
-		,	pair	// loop var
-		;
-		for (var i=0, n=cs.length; i < n; i++) {
-			pair = $.trim(cs[i]).split('='); // name=value pair
-			if (pair[0] == name) // found the layout cookie
-				return decodeURIComponent(pair[1]);
-		}
-		return "";
-	}
-
-,	write: function (name, val, cookieOpts) {
-		var
-			params	= ''
-		,	date	= ''
-		,	clear	= false
-		,	o		= cookieOpts || {}
-		;
-		if (!o.expires) ; // skip
-		else if (o.expires.toUTCString)
-			date = o.expires;
-		else if (typeof o.expires == 'number') {
-			date = new Date();
-			if (o.expires > 0)
-				date.setDate(date.getDate() + o.expires);
-			else {
-				date.setYear(1970);
-				clear = true;
-			}
-		}
-		if (date)		params += ';expires='+ date.toUTCString();
-		if (o.path)		params += ';path='+ o.path;
-		if (o.domain)	params += ';domain='+ o.domain;
-		if (o.secure)	params += ';secure';
-		document.cookie = name +'='+ (clear ? "" : encodeURIComponent( val )) + params; // write or clear cookie
-	}
-
-,	clear: function (name) {
-		$.ui.cookie.write(name, '', {expires: -1});
-	}
-
-};
-
-
 // tell Layout that the state plugin is available
 $.layout.plugins.stateManagement = true;
 
 //	Add State-Management options to layout.defaults
 $.layout.defaults.stateManagement = {
-	enabled:	false	// true = enable state-management, even if not using cookies
-,	autoSave:	true	// Save a state-cookie when page exits?
-,	autoLoad:	true	// Load the state-cookie when Layout inits?
+	enabled:		false	// true = enable state-management, even if not using cookies
+,	autoSave:		true	// Save a state-cookie when page exits?
+,	autoLoad:		true	// Load the state-cookie when Layout inits?
+,	animateLoad:	true	// animate panes when loading state into an active layout
+,	includeChildren: true	// recurse into child layouts to include their state as well
 	// List state-data to save - must be pane-specific
 ,	stateKeys:	"north.size,south.size,east.size,west.size,"+
 				"north.isClosed,south.isClosed,east.isClosed,west.isClosed,"+
@@ -122,22 +143,21 @@ $.layout.defaults.stateManagement = {
 ,	cookie: {
 		name:	""	// If not specified, will use Layout.name, else just "Layout"
 	,	domain:	""	// blank = current domain
-	,	path:	""	// blank = current page, '/' = entire website
+	,	path:	""	// blank = current page, "/" = entire website
 	,	expires: ""	// 'days' to keep cookie - leave blank for 'session cookie'
 	,	secure:	false
 	}
 };
-// Set stateManagement as a layout-option, NOT a pane-option
+
+// Set stateManagement as a 'layout-option', NOT a 'pane-option'
 $.layout.optionsMap.layout.push("stateManagement");
+// Update config so layout does not move options into the pane-default branch (panes)
+$.layout.config.optionRootKeys.push("stateManagement");
 
 /*
- *	State Managment methods
+ *	State Management methods
  */
 $.layout.state = {
-	// set data used by multiple methods below
-	config: {
-		allPanes:	"north,south,west,east,center"
-	}
 
 	/**
 	 * Get the current layout state and save it to a cookie
@@ -146,16 +166,16 @@ $.layout.state = {
 	 *
 	 * @param {Object}			inst
 	 * @param {(string|Array)=}	keys
-	 * @param {Object=}			opts
+	 * @param {Object=}			cookieOpts
 	 */
-,	saveCookie: function (inst, keys, cookieOpts) {
+	saveCookie: function (inst, keys, cookieOpts) {
 		var o	= inst.options
-		,	oS	= o.stateManagement
-		,	oC	= $.extend( {}, oS.cookie, cookieOpts || {} )
-		,	data = inst.state.stateData = inst.readState( keys || oS.stateKeys ) // read current panes-state
+		,	sm	= o.stateManagement
+		,	oC	= $.extend(true, {}, sm.cookie, cookieOpts || null)
+		,	data = inst.state.stateData = inst.readState( keys || sm.stateKeys ) // read current panes-state
 		;
 		$.ui.cookie.write( oC.name || o.name || "Layout", $.layout.state.encodeJSON(data), oC );
-		return $.extend( {}, data ); // return COPY of state.stateData data
+		return $.extend(true, {}, data); // return COPY of state.stateData data
 	}
 
 	/**
@@ -188,12 +208,12 @@ $.layout.state = {
 ,	loadCookie: function (inst) {
 		var c = $.layout.state.readCookie(inst); // READ the cookie
 		if (c && !$.isEmptyObject( c )) {
-			inst.state.stateData = $.extend({}, c); // SET state.stateData
+			inst.state.stateData = $.extend(true, {}, c); // SET state.stateData
 			inst.loadState(c); // LOAD the retrieved state
 		}
 		return c;
 	}
-	
+
 	/**
 	 * Update layout options from the cookie, if one exists
 	 *
@@ -201,42 +221,107 @@ $.layout.state = {
 	 * @param {Object=}		stateData
 	 * @param {boolean=}	animate
 	 */
-,	loadState: function (inst, stateData, animate) {
-		stateData = $.layout.transformData( stateData ); // panes = default subkey
-		$.extend( true, inst.options, stateData ); // update layout options
-		// if layout has already been initialized, then UPDATE layout state
-		if (inst.state.initialized) {
-			var pane, o, s, h, c
-			,	noAnimate = (animate===false);
-			$.each($.layout.state.config.allPanes.split(","), function (idx, pane) {
-				o = stateData[ pane ];
-				if (typeof o != 'object') return; // no key, continue
-				s = o.size;
-				c = o.initClosed;
-				h = o.initHidden;
-				if (s > 0 || s=="auto") inst.sizePane(pane, s, false, null, noAnimate); // will animate resize if option enabled
-				if (h === true)			inst.hide(pane, a);
-				else if (c === false)	inst.open (pane, false, noAnimate);
+,	loadState: function (inst, data, opts) {
+		if (!$.isPlainObject( data ) || $.isEmptyObject( data )) return;
+
+		// normalize data & cache in the state object
+		data = inst.state.stateData = $.layout.transformData( data ); // panes = default subkey
+
+		// add missing/default state-restore options
+		var smo = inst.options.stateManagement;
+		opts = $.extend({
+			animateLoad:		false //smo.animateLoad
+		,	includeChildren:	smo.includeChildren
+		}, opts );
+
+		if (!inst.state.initialized) {
+			/*
+			 *	layout NOT initialized, so just update its options
+			 */
+			// MUST remove pane.children keys before applying to options
+			// use a copy so we don't remove keys from original data
+			var o = $.extend(true, {}, data);
+			//delete o.center; // center has no state-data - only children
+			$.each($.layout.config.allPanes, function (idx, pane) {
+				if (o[pane]) delete o[pane].children;		   
+			 });
+			// update CURRENT layout-options with saved state data
+			$.extend(true, inst.options, o);
+		}
+		else {
+			/*
+			 *	layout already initialized, so modify layout's configuration
+			 */
+			var noAnimate = !opts.animateLoad
+			,	o, c, h, state, open
+			;
+			$.each($.layout.config.borderPanes, function (idx, pane) {
+				o = data[ pane ];
+				if (!$.isPlainObject( o )) return; // no key, skip pane
+
+				s	= o.size;
+				c	= o.initClosed;
+				h	= o.initHidden;
+				ar	= o.autoResize
+				state	= inst.state[pane];
+				open	= state.isVisible;
+
+				// reset autoResize
+				if (ar)
+					state.autoResize = ar;
+				// resize BEFORE opening
+				if (!open)
+					inst._sizePane(pane, s, false, false, false); // false=skipCallback/noAnimation/forceResize
+				// open/close as necessary - DO NOT CHANGE THIS ORDER!
+				if (h === true)			inst.hide(pane, noAnimate);
 				else if (c === true)	inst.close(pane, false, noAnimate);
+				else if (c === false)	inst.open (pane, false, noAnimate);
 				else if (h === false)	inst.show (pane, false, noAnimate);
+				// resize AFTER any other actions
+				if (open)
+					inst._sizePane(pane, s, false, false, noAnimate); // animate resize if option passed
 			});
+
+			/*
+			 *	RECURSE INTO CHILD-LAYOUTS
+			 */
+			if (opts.includeChildren) {
+				var paneStateChildren, childState;
+				$.each(inst.children, function (pane, paneChildren) {
+					paneStateChildren = data[pane] ? data[pane].children : 0;
+					if (paneStateChildren && paneChildren) {
+						$.each(paneChildren, function (stateKey, child) {
+							childState = paneStateChildren[stateKey];
+							if (child && childState)
+								child.loadState( childState );
+						});
+					}
+				});
+			}
 		}
 	}
 
 	/**
 	 * Get the *current layout state* and return it as a hash
 	 *
-	 * @param {Object=}			inst
-	 * @param {(string|Array)=}	keys
+	 * @param {Object=}		inst	// Layout instance to get state for
+	 * @param {object=}		[opts]	// State-Managements override options
 	 */
-,	readState: function (inst, keys) {
-		var
-			data	= {}
+,	readState: function (inst, opts) {
+		// backward compatility
+		if ($.type(opts) === 'string') opts = { keys: opts };
+		if (!opts) opts = {};
+		var	sm		= inst.options.stateManagement
+		,	ic		= opts.includeChildren
+		,	recurse	= ic !== undefined ? ic : sm.includeChildren
+		,	keys	= opts.stateKeys || sm.stateKeys
 		,	alt		= { isClosed: 'initClosed', isHidden: 'initHidden' }
 		,	state	= inst.state
+		,	panes	= $.layout.config.allPanes
+		,	data	= {}
 		,	pair, pane, key, val
+		,	ps, pC, child, array, count, branch
 		;
-		if (!keys) keys = inst.options.stateManagement.stateKeys; // if called by user
 		if ($.isArray(keys)) keys = keys.join(",");
 		// convert keys to an array and change delimiters from '__' to '.'
 		keys = keys.replace(/__/g, ".").split(',');
@@ -245,13 +330,36 @@ $.layout.state = {
 			pair = keys[i].split(".");
 			pane = pair[0];
 			key  = pair[1];
-			if ($.layout.state.config.allPanes.indexOf(pane) < 0) continue; // bad pane!
+			if ($.inArray(pane, panes) < 0) continue; // bad pane!
 			val = state[ pane ][ key ];
 			if (val == undefined) continue;
 			if (key=="isClosed" && state[pane]["isSliding"])
 				val = true; // if sliding, then *really* isClosed
 			( data[pane] || (data[pane]={}) )[ alt[key] ? alt[key] : key ] = val;
 		}
+
+		// recurse into the child-layouts for each pane
+		if (recurse) {
+			$.each(panes, function (idx, pane) {
+				pC = inst.children[pane];
+				ps = state.stateData[pane];
+				if ($.isPlainObject( pC ) && !$.isEmptyObject( pC )) {
+					// ensure a key exists for this 'pane', eg: branch = data.center
+					branch = data[pane] || (data[pane] = {});
+					if (!branch.children) branch.children = {};
+					$.each( pC, function (key, child) {
+						// ONLY read state from an initialize layout
+						if ( child.state.initialized )
+							branch.children[ key ] = $.layout.state.readState( child );
+						// if we have PREVIOUS (onLoad) state for this child-layout, KEEP IT!
+						else if ( ps && ps.children && ps.children[ key ] ) {
+							branch.children[ key ] = $.extend(true, {}, ps.children[ key ] );
+						}
+					});
+				}
+			});
+		}
+
 		return data;
 	}
 
@@ -263,7 +371,9 @@ $.layout.state = {
 		return (native.stringify || stringify)(JSON);
 
 		function stringify (h) {
-			var D=[], i=0, k, v, t; // k = key, v = value
+			var D=[], i=0, k, v, t // k = key, v = value
+			,	a = $.isArray(h)
+			;
 			for (k in h) {
 				v = h[k];
 				t = typeof v;
@@ -271,9 +381,9 @@ $.layout.state = {
 					v = '"'+ v +'"';
 				else if (t == 'object')	// SUB-KEY - recurse into it
 					v = parse(v);
-				D[i++] = '"'+ k +'":'+ v;
+				D[i++] = (!a ? '"'+ k +'":' : '') + v;
 			}
-			return '{'+ D.join(',') +'}';
+			return (a ? '[' : '{') + D.join(',') + (a ? ']' : '}');
 		};
 	}
 
@@ -288,45 +398,69 @@ $.layout.state = {
 
 
 ,	_create: function (inst) {
+		var s	= $.layout.state
+		,	o	= inst.options
+		,	sm	= o.stateManagement
+		;
 		//	ADD State-Management plugin methods to inst
 		 $.extend( inst, {
 		//	readCookie - update options from cookie - returns hash of cookie data
-			readCookie:		function () { return $.layout.state.readCookie(inst); }
+			readCookie:		function () { return s.readCookie(inst); }
 		//	deleteCookie
-		,	deleteCookie:	function () { $.layout.state.deleteCookie(inst); }
+		,	deleteCookie:	function () { s.deleteCookie(inst); }
 		//	saveCookie - optionally pass keys-list and cookie-options (hash)
-		,	saveCookie:		function (keys, cookieOpts) { return $.layout.state.saveCookie(inst, keys, cookieOpts); }
+		,	saveCookie:		function (keys, cookieOpts) { return s.saveCookie(inst, keys, cookieOpts); }
 		//	loadCookie - readCookie and use to loadState() - returns hash of cookie data
-		,	loadCookie:		function () { return $.layout.state.loadCookie(inst); }
+		,	loadCookie:		function () { return s.loadCookie(inst); }
 		//	loadState - pass a hash of state to use to update options
-		,	loadState:		function (stateData, animate) { $.layout.state.loadState(inst, stateData, animate); }
+		,	loadState:		function (stateData, opts) { s.loadState(inst, stateData, opts); }
 		//	readState - returns hash of current layout-state
-		,	readState:		function (keys) { return $.layout.state.readState(inst, keys); }
+		,	readState:		function (keys) { return s.readState(inst, keys); }
 		//	add JSON utility methods too...
-		,	encodeJSON:		$.layout.state.encodeJSON
-		,	decodeJSON:		$.layout.state.decodeJSON
+		,	encodeJSON:		s.encodeJSON
+		,	decodeJSON:		s.decodeJSON
 		});
 
 		// init state.stateData key, even if plugin is initially disabled
 		inst.state.stateData = {};
 
-		// read and load cookie-data per options
-		var oS = inst.options.stateManagement;
-		if (oS.enabled) {
-			if (oS.autoLoad) // update the options from the cookie
+		// autoLoad MUST BE one of: data-array, data-hash, callback-function, or TRUE
+		if ( !sm.autoLoad ) return;
+
+		//	When state-data exists in the autoLoad key USE IT,
+		//	even if stateManagement.enabled == false
+		if ($.isPlainObject( sm.autoLoad )) {
+			if (!$.isEmptyObject( sm.autoLoad )) {
+				inst.loadState( sm.autoLoad );
+			}
+		}
+		else if ( sm.enabled ) {
+			// update the options from cookie or callback
+			// if options is a function, call it to get stateData
+			if ($.isFunction( sm.autoLoad )) {
+				var d = {};
+				try {
+					d = sm.autoLoad( inst, inst.state, inst.options, inst.options.name || '' ); // try to get data from fn
+				} catch (e) {}
+				if (d && $.isPlainObject( d ) && !$.isEmptyObject( d ))
+					inst.loadState(d);
+			}
+			else // any other truthy value will trigger loadCookie
 				inst.loadCookie();
-			else // don't modify options - just store cookie data in state.stateData
-				inst.state.stateData = inst.readCookie();
 		}
 	}
 
 ,	_unload: function (inst) {
-		var oS = inst.options.stateManagement;
-		if (oS.enabled) {
-			if (oS.autoSave) // save a state-cookie automatically
+		var sm = inst.options.stateManagement;
+		if (sm.enabled && sm.autoSave) {
+			// if options is a function, call it to save the stateData
+			if ($.isFunction( sm.autoSave )) {
+				try {
+					sm.autoSave( inst, inst.state, inst.options, inst.options.name || '' ); // try to get data from fn
+				} catch (e) {}
+			}
+			else // any truthy value will trigger saveCookie
 				inst.saveCookie();
-			else // don't save a cookie, but do store state-data in state.stateData key
-				inst.state.stateData = inst.readState();
 		}
 	}
 

@@ -1,8 +1,8 @@
 /**
  * @preserve
- * jquery.layout 1.4.1
- * $Date: 2014-07-13 08:00:00 (Sat, 13 Jul 2014) $
- * $Rev: 1.0401 $
+ * jquery.layout 1.4.2
+ * $Date: 2014-08-09 08:00:00 (Sat, 9 Aug 2014) $
+ * $Rev: 1.0402 $
  *
  * Copyright (c) 2014 Kevin Dalman (http://jquery-dev.com)
  * Based on work by Fabrizio Balliano (http://www.fabrizioballiano.net)
@@ -65,8 +65,8 @@ var	min		= Math.min
  */
 $.layout = {
 
-	version:	"1.4.1"
-,	revision:	1.0401 // eg: 1.4.1 final = 1.0401 - major(n+).minor(nn)+patch(nn+)
+	version:	"1.4.2"
+,	revision:	1.0402 // eg: 1.4.1 final = 1.0401 - major(n+).minor(nn)+patch(nn+)
 
 	// $.layout.browser REPLACES $.browser
 ,	browser:	{} // set below

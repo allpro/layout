@@ -1,0 +1,522 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+
+	<title>Save Layout State Demo</title>
+
+	<link type="text/css" rel="stylesheet" href="/lib/css/layout-default-latest.css" />
+	<link type="text/css" rel="stylesheet" href="/lib/css/themes/ui-lightness/jquery-ui.css" />
+
+	<style type="text/css">
+
+	/* 
+	 *	PAGE SIZE - FOR DEMONSTRATION ONLY
+	 */
+	html {
+		/* allow scrolling if layout hits min-width/height */
+		overflow:		auto !important; /* override Layout default of 'hidden' to allow scrollbars */
+		
+	}
+	body {
+		background:		#99b;
+		/* add padding and min/max sizes to BODY */
+		padding:		20px;
+		/* set min dimensions for layout - window will scroll if smaller than this */
+		min-height:		600px;
+		min-width:		750px;
+		max-width:		1160px;
+		/* add margin: auto to 'center' the BODY content */
+		margin:			0 auto !important; /* override Layout default of '0' */
+	}
+
+	/* 
+	 *	HELPER CLASSES
+	 */
+	.container {
+		/* used for elements that should not have padding or scrollbars */
+		border:		0;
+		padding:	0 !important;
+		overflow:	hidden !important;
+	}
+	.no-padding {
+		padding:	0 !important;
+	}
+	.no-scrolling {
+		overflow:	hidden !important;
+	}
+	.hidden {
+		/* used to HIDE layout-panes until Layout initializes */
+		display:	none;
+	}
+
+	/*
+	 *	UI-TABS STYLING
+	 */
+		UL#tabButtons {
+			border-radius:	0;
+			overflow:		visible;
+		}
+		DIV#tabPanels {
+			/*margin:		0 !important;  layout-panes should never have margins */
+			}
+			DIV.tabPanel {
+				height:		100%; /* 'fill' the tabPanel - layout container must have 'height' */
+				padding:	0 !important; /* override ui-widget-content */
+			}
+
+	/*
+	 *	COSMETIC STYLES, NOT REQUIRED
+	 */
+
+	/* remove pane-background so 'container' (parent-pane) background shows through the child-panes */
+	.ui-layout-center > .ui-layout-pane {
+		background: none;
+	}
+
+	/* add some content padding and set overflows */
+	.ui-widget-header {
+		padding:	2px 1em 3px;
+		margin:		0;
+		overflow:	hidden;
+	}
+	.ui-widget-content {
+		padding:	1ex 1em;
+		margin:		0;
+		overflow:	auto;
+	}
+
+	/* cosmetic button appearance */
+	p.button {
+		padding-left:	33ex;
+		}
+		p.button button	{
+			font-size:		1em;
+			text-align: 	left; 
+			vertical-align: middle;
+			padding: 		2px 2.5ex;
+			min-width:		31ex;
+			margin-right: 	1.5ex; 
+			margin-left:	-33ex;
+			margin-bottom:	5px;
+			position:		relative;
+		}
+
+	</style>
+
+
+	<script type="text/javascript" src="js/jquery.js"></script>
+	<script type="text/javascript" src="js/jquery-ui.js"></script>
+	<script type="text/javascript" src="js/debug.js"></script>
+	<script type="text/javascript" src="../source/stable/jquery.layout.js"></script>
+	<script type="text/javascript" src="../source/stable/plugins/jquery.layout.state.js"></script>
+	<script type="text/javascript" src="../source/stable/callbacks/jquery.layout.resizeTabLayout.js"></script>
+
+	<script type="text/javascript">
+
+	function customSaveState (Instance, state, options, name) {
+		// get the state and save it in a database...
+		var state_JSON = Instance.readState();
+		// use Layout utilities to stringify the JSON - IF NECESSARY
+		var state_string = Instance.encodeJSON( state_JSON );
+
+		// now can save the data in the database string field
+		// create a custom-cookie to simulate saving to a DB
+		$.ui.cookie.write('customState', state_string );
+	};
+
+	function customLoadState (Instance, state, options, name) {
+		// get custom state that was saved in the customState cookie
+		var state_string = $.ui.cookie.read('customState');
+		savedState_JSON = Instance.decodeJSON( state_string );
+		//console.data( savedState_JSON, 'customLoadState' );
+
+		// load the custom state
+		Instance.loadState( savedState_JSON, false ); // false = DO NOT animate open/close/resize (default)
+	};
+
+	// clear the cookie, change option so a new one is not created, then reload the page
+	function resetPage () {
+		myLayout.deleteCookie();
+		myLayout.options.stateManagement.autoSave=false;
+		$('#autoSaveState').attr('checked', false);
+		self.location.reload();
+	};
+
+	// simple function to toggle all the panes
+	function toggleAll () {
+		$.each(["north","west","east","south"], function(i, pane){
+			myLayout.center.children['outer-center'].toggle( pane );
+		});
+	};
+
+
+	$(document).ready( function() {
+
+		// create the tabs before the page layout because tabs will change the height of the north-pane
+		$("#tabs").tabs({
+			// ensure layouts are created/updated when it's tab/container is activated
+			activate: $.layout.callbacks.resizeTabLayout
+
+		//	set current tab-id on URL to save-state for that too!
+		,	beforeActivate: function (event, ui) {
+				window.location.hash = ui.newPanel.selector;
+			}
+		});
+
+
+		myLayout = $("body").layout({
+			name:						"page-layout"
+		,	contentSelector:			".ui-widget-content"
+		,	west__size:					.50
+		,	east__size:					200
+		,	east__initClosed:			true
+
+		,	livePaneResizing:			true
+		,	animatePaneSizing:			true	// changes in pane-sizes when resetting state will be animated
+
+		,	stateManagement__enabled:	true	// enable stateManagement - automatic cookie load & save enabled by default
+		,	stateManagement__includeChildren: true	// DEFAULT = true - include all child-layouts in state data & cookie (true = default)
+
+		//	these are NOT needed- just here to show how to add custom state-saving methods
+		//,	stateManagement__autoLoad:	customLoadState // run custom state-code when Layout loads
+		//,	stateManagement__autoSave:	customSaveState // ditto when page unloads OR Layout is 'destroyed'
+
+		//	child-layout inside the west-pane
+		,	center__children: {
+				name:					'outer-center'
+			,	spacing_open:			10
+			}
+
+		//	tabs-wrapper layout inside the west-pane
+		,	west__children: {
+				name:					'outer-west'
+			,	spacing_open:			0
+			,	onresizeall:			$.layout.callbacks.resizeTabLayout
+
+			//	child-layouts and grandchild-layouts inside the tab-panels
+			,	center__children: [
+					{	name:				'west-tab-2'
+					,	containerSelector:	"> .childLayout:first" // TWO child layouts - inside Tabs 2 & 3
+					,	contentSelector:	".ui-widget-content"
+					,	west__size:			.25
+					,	east__size:			.25
+					,	stateManagement__enabled:	true	// enable stateManagement - automatic cookie load & save enabled by default
+					}
+					// Only ONE of the two tabs has an inner-child layout.
+					// So add children as separate keys to prevent Layout from 
+					// _trying_ to init layouts inside BOTH tab-layouts.
+				,	{	name:				'west-tab-3'
+					,	containerSelector:	"> .childLayout:last" // TWO child layouts - inside Tabs 2 & 3
+					,	contentSelector:	".ui-widget-content"
+					,	west__size:			.25
+					,	east__size:			.25
+					,	center__children: {
+							name:				'Tab #3 inner-layout'
+						,	contentSelector:	".ui-widget-content"
+						}
+					}
+				]
+			}
+
+		/*	sample formats for customizing stateManagement.keys
+		,	stateManagement__stateKeys:	"west.size,east.size,west.isClosed,east.isClosed"
+		,	stateManagement__stateKeys:	"west.size,north.size"		// state-keys in sub-key format
+		,	stateManagement__stateKeys:	"west__size,north__size"	// state-keys in flat-format
+		*/
+		});
+
+		// sync checkbox with layout state options
+		var state = myLayout.options.stateManagement;
+		$('#autoSaveState').attr("checked", (state.enabled && !!state.autoSave) );
+		$('#autoLoadState').attr("checked", (state.enabled && !!state.autoLoad) );
+
+		// save ALL states of ALL panes to test loadState (reset button)
+		window.fullState = myLayout.readState(
+			"north.size,south.size,east.size,west.size,"+
+			"north.isClosed,south.isClosed,east.isClosed,west.isClosed,"+
+			"north.isHidden,south.isHidden,east.isHidden,west.isHidden"
+		);
+
+	});
+
+	</script>
+
+</head>
+<body>
+
+<!--
+	OUTER-CENTER PANE
+-->
+<div id="outer-center" class="ui-layout-center container hide" style="background: #FFE;">
+
+	<div class="ui-layout-center hide">
+
+		<b>Center - Center pane</b>
+
+		<p class="button">
+			<button onclick="toggleAll()">Toggle All <i>Nested</i> Panes</button>
+		</p>
+		<p>
+			Change the 'state' by opening some panes and adjusting their size,
+			then <a href="#" onclick="self.location.reload(); return false;"><b>Reload</b></a>.
+			The page should reload with the panes exactly as they were.
+		</p>
+
+		<hr />
+		<p><input id="autoLoadState" type="checkbox" value="1" checked="checked" disabled="disabled"
+			onchange="var o = myLayout.options.stateManagement; o.autoSave=this.checked; if (this.checked) o.enabled=true;" 
+			onclick="this.blur(); this.focus();" />
+			<label for="autoLoadState" style="color: #888;"><b>options.stateManagement.autoLoad</b></label>
+			<br /> &nbsp; &nbsp; &nbsp; load-state when layout created - see options
+			<br /><br />
+			<input id="autoSaveState" type="checkbox" value="1" checked="checked"
+			onchange="var o = myLayout.options.stateManagement; o.autoSave=this.checked; if (this.checked) o.enabled=true;" 
+			onclick="this.blur(); this.focus();" />
+			<label for="autoSaveState"><b>options.stateManagement.autoSave</b></label>
+			<br /> &nbsp; &nbsp; &nbsp; save-state on window.unload &amp; layout.destroy()
+			<br /><br />
+			<button onClick="myLayout.deleteCookie()">myLayout.deleteCookie()</button>
+		</p>
+
+		<hr />
+		<p><input id="autoLoadState" type="checkbox" value="1" checked="checked" disabled="disabled"
+			onchange="var o = myLayout.options.stateManagement; o.autoSave=this.checked; if (this.checked) o.enabled=true;" 
+			onclick="this.blur(); this.focus();" />
+			<label for="autoLoadState" style="color: #888;"><b>options.stateManagement.autoLoad</b></label>
+			&ndash; <b>loadState</b> when layout created? (can't change here)
+			<br />
+			<input id="autoSaveState" type="checkbox" value="1" checked="checked"
+			onchange="var o = myLayout.options.stateManagement; o.autoSave=this.checked; if (this.checked) o.enabled=true;" 
+			onclick="this.blur(); this.focus();" />
+			<label for="autoSaveState"><b>options.stateManagement.autoSave</b></label>
+			&ndash; <b>saveState</b> on window.unload ?
+		</p>
+
+		<hr />
+		<p>
+			<strong>Data is output using console.log(), so look at the console.</strong>
+		</p>
+
+		<p class="button">
+			<button onclick="console.data( myLayout.readState(), this.innerHTML )"
+			>myLayout.readState()</button>
+			Show <u>current</u> state-data from the layout
+		</p>
+		<p class="button">
+			<button onclick="console.data( myLayout.state.stateData, this.innerHTML )"
+			>myLayout.state.stateData</button>
+			Show state-data stored in layout.state object - as last read-from or saved-to the state-cookie</p>
+			<p class="button"><button onclick="var d=myLayout.readCookie(); if (d) console.data( myLayout.readCookie(), this.innerHTML ); else alert('No Cookie');"
+			>myLayout.readCookie()</button>
+			Show data currently saved in the state-cookie
+		</p>
+		<p class="button">
+			<button onclick="console.data( myLayout.saveCookie(), this.innerHTML )"
+			>myLayout.saveCookie()</button>
+			Update the state-cookie with current layout state-data
+		</p>
+		<p class="button"><button onclick="myLayout.deleteCookie(); myLayout.state.stateData = {}; alert('Cookie deleted \n\nstate.stateData cleared')"
+		>myLayout.deleteCookie()</button>
+			Delete the state-cookie
+		</p>
+		<p class="button">
+			<button onclick="resetPage()">Reset Page to Default</button>
+			&gt RELOAD page with <u>default layout settings</u> (no state)...
+		</p>
+
+		<p style="margin: -.75em 0 -.75em 1.5em;">
+			&nbsp; &nbsp; This button triggers 3 steps:
+		</p>
+		<ol style="margin-left: 1.5em;">
+			<li><b>myLayout.deleteCookie()</b> &mdash; remove the existing layout cookie</li>
+			<li><b>myLayout.options.stateManagement.autoSave = false</b> &mdash; prevent saving new cookie on window.unload</li>
+			<li><b>Reload the page</b> &mdash; default layout settings used onLoad because there is no cookie</li>
+		</ol>
+
+		<!-- Resetting state of layouts is temporarily disabled because this has not yet been
+			converted to work with the new cascading-state functionality.
+
+		-->
+
+		<p class="button">
+			<button onclick="myLayout.loadState( window.fullState, { animateLoad: false })"
+							>myLayout.loadState( fullState, { animateLoad: false })</button>
+			&gt RESET layout to 
+			<a href="#" onclick="console.data(window.fullState,'fullState'); return false;">as it was when loaded</a> (instant, no reload)
+			<br />
+			<button onclick="myLayout.loadState( window.fullState, { animateLoad: true })"
+							>myLayout.loadState( fullState, { animateLoad: true })</button>
+			&nbsp; &gt ditto &ndash; true = use pane animations
+		</p>
+
+		<p style="margin: -.75em 0 -.75em 1.5em;">
+			&nbsp; &nbsp; These buttons loads a state-hash that was created onLoad:
+		</p>
+		<ul style="margin-left: 1.5em;">
+			<li><b>window.fullState = myLayout.readState()</b> &mdash; saved after layout loaded</li>
+			<li><b>myLayout.loadState( fullState, { animateLoad: true })</b> &mdash; restore the original state &ndash; using animation</li>
+		</ul>
+
+		<p>&nbsp;</p>
+
+	</div>
+
+	<div class="ui-layout-north hide">Center - North pane</div>
+
+	<div class="ui-layout-south hide">Center - South pane</div>
+
+</div>
+
+
+
+<!--
+	OUTER-WEST PANE
+-->
+<div id="tabs" class="ui-layout-west container hide">
+
+	<ul id="tabButtons" class="ui-layout-north">
+		<li><a href="#tab1">Tab #1</a></li>
+		<li><a href="#tab2">Tab #2</a></li>
+		<li><a href="#tab3">Tab #3</a></li>
+	</ul>
+
+	<!-- wrap tab-panels in ui-layout-content div -->
+	<div id="tabPanels" class="ui-layout-center container">
+
+
+		<!-- TAB #1 -->
+		<div id="tab1" class="tabPanel" style="display: none;">
+			<p class="ui-widget-header"><b>#tab1.tabPanel</b></p>
+			<div class="ui-widget-content">
+				<p>div.ui-widget-content</p>
+				<p>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.
+					Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.
+				</p>
+			</div>
+		</div>
+
+
+		<!-- TAB #2 -->
+		<div id="tab2" class="tabPanel childLayout" style="display: none;">
+
+			<div class="ui-layout-north no-padding">
+				<div class="ui-widget-header">North</div>
+				<div class="ui-widget-content"><b>Tab #2 Layout</b></div>
+			</div>
+
+			<div class="ui-layout-center no-padding">
+				<div class="ui-widget-header">Center</div>
+				<div class="ui-widget-content">Center content
+					<p>Click the buttons below to console.log the 'state' of the outer-west or outer-center panes.
+						This will include the states of all their children, grand-children, etc.
+					</p>
+					<p><button onclick="console.data( myLayout.readState().west, this.innerHTML );"
+						>myLayout.readState().west</button>
+					</p>
+					<p><button onclick="console.data( myLayout.readState().center, this.innerHTML );"
+						>myLayout.readState().center</button>
+					</p>
+				</div>
+			</div>
+
+			<div class="ui-layout-west no-padding">
+				<div class="ui-widget-header">West</div>
+				<div class="ui-widget-content">West content</div>
+			</div>
+
+			<div class="ui-layout-south no-padding">
+				<div class="ui-widget-header">South</div>
+				<div class="ui-widget-content">South content</div>
+			</div>
+
+			<div class="ui-layout-east no-padding">
+				<div class="ui-widget-header">East</div>
+				<div class="ui-widget-content">East content</div>
+			</div>
+
+		</div><!-- TAB #2 / #tabLayout -->
+
+
+		<!-- TAB #3 -->
+		<div id="tab3" class="tabPanel childLayout hasChildLayout" style="display: none;">
+
+			<div class="ui-layout-north no-padding">
+				<div class="ui-widget-header">North</div>
+				<div class="ui-widget-content"><b>Tab #3 Layout + Child-Layout</b></div>
+			</div>
+
+			<div id="tab3-center" class="ui-layout-center container">
+
+				<div class="ui-layout-north no-padding">
+					<div class="ui-widget-header">Inner North</div>
+					<div class="ui-widget-content">Inner North content</div>
+				</div>
+
+				<div class="ui-layout-center no-padding">
+					<div class="ui-widget-header">Inner Center</div>
+					<div class="ui-widget-content">Inner Center content</div>
+				</div>
+
+				<div class="ui-layout-south no-padding">
+					<div class="ui-widget-header">Inner South</div>
+					<div class="ui-widget-content">Inner South content</div>
+				</div>
+
+			</div>
+
+			<div class="ui-layout-west no-padding">
+				<div class="ui-widget-header">West</div>
+				<div class="ui-widget-content">West content</div>
+			</div>
+
+			<div class="ui-layout-south no-padding">
+				<div class="ui-widget-header">South</div>
+				<div class="ui-widget-content">South content</div>
+			</div>
+
+			<div class="ui-layout-east no-padding">
+				<div class="ui-widget-header">East</div>
+				<div class="ui-widget-content">East content</div>
+			</div>
+
+		</div><!-- TAB #3 / #tabLayout -->
+
+
+	</div><!-- END tabPanels -->
+
+
+	<p class="ui-layout-south ui-widget-header">Tabs Footer</p>
+
+</div><!-- END body > .ui-layout-west -->
+
+
+
+<!--
+	OUTER-EAST PANE
+-->
+<div class="ui-layout-east no-padding hide">
+	<p class="ui-widget-header">Outer East pane</p>
+	<p class="ui-widget-content">Outer East content</p>
+</div>
+
+<!--
+	OUTER-NORTH PANE
+-->
+<div class="ui-layout-north no-padding hide">
+	<p class="ui-widget-header">Outer North pane</p>
+	<p class="ui-widget-content">
+		<b>State-Management Demo Page</b>
+	</p>
+</div>
+
+<!--
+	OUTER-SOUTH PANE
+-->
+<div class="ui-layout-south no-padding hide">
+	<p class="ui-widget-header">Outer South pane</p>
+	<div class="ui-widget-content">Outer South content</div>
+</div>
+
+
+</body>
+</html>
