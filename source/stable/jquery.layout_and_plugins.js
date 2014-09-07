@@ -1,8 +1,8 @@
 /**
  * @preserve
- * jquery.layout 1.4.2
- * $Date: 2014-08-09 08:00:00 (Sat, 9 Aug 2014) $
- * $Rev: 1.0402 $
+ * jquery.layout 1.4.3
+ * $Date: 2014-08-30 08:00:00 (Sat, 30 Aug 2014) $
+ * $Rev: 1.0403 $
  *
  * Copyright (c) 2014 Kevin Dalman (http://jquery-dev.com)
  * Based on work by Fabrizio Balliano (http://www.fabrizioballiano.net)
@@ -65,8 +65,8 @@ var	min		= Math.min
  */
 $.layout = {
 
-	version:	"1.4.2"
-,	revision:	1.0402 // eg: 1.4.1 final = 1.0401 - major(n+).minor(nn)+patch(nn+)
+	version:	"1.4.3"
+,	revision:	1.0403 // eg: 1.4.1 final = 1.0401 - major(n+).minor(nn)+patch(nn+)
 
 	// $.layout.browser REPLACES $.browser
 ,	browser:	{} // set below
@@ -323,8 +323,8 @@ $.layout = {
 ,	scrollbarWidth:		function () { return window.scrollbarWidth  || $.layout.getScrollbarSize('width'); }
 ,	scrollbarHeight:	function () { return window.scrollbarHeight || $.layout.getScrollbarSize('height'); }
 ,	getScrollbarSize:	function (dim) {
-		var $c	= $('<div style="position: absolute; top: -10000px; left: -10000px; width: 100px; height: 100px; overflow: scroll;"></div>').appendTo("body");
-		var d	= { width: $c.css("width") - $c[0].clientWidth, height: $c.height() - $c[0].clientHeight };
+		var $c	= $('<div style="position: absolute; top: -10000px; left: -10000px; width: 100px; height: 100px; border: 0; overflow: scroll;"></div>').appendTo("body")
+		,	d	= { width: $c.outerWidth - $c[0].clientWidth, height: 100 - $c[0].clientHeight };
 		$c.remove();
 		window.scrollbarWidth	= d.width;
 		window.scrollbarHeight	= d.height;
@@ -466,7 +466,8 @@ $.layout = {
 		// a 'calculated' outerHeight can be passed so borders and/or padding are removed if needed
 		if (outerWidth <= 0) return 0;
 
-		var bs	= !$.layout.browser.boxModel ? "border-box" : $.support.boxSizing ? $E.css("boxSizing") : "content-box"
+		var lb	= $.layout.browser
+		,	bs	= !lb.boxModel ? "border-box" : lb.boxSizing ? $E.css("boxSizing") : "content-box"
 		,	b	= $.layout.borderWidth
 		,	n	= $.layout.cssNum
 		,	W	= outerWidth
@@ -491,7 +492,8 @@ $.layout = {
 		// a 'calculated' outerHeight can be passed so borders and/or padding are removed if needed
 		if (outerHeight <= 0) return 0;
 
-		var bs	= !$.layout.browser.boxModel ? "border-box" : $.support.boxSizing ? $E.css("boxSizing") : "content-box"
+		var lb	= $.layout.browser
+		,	bs	= !lb.boxModel ? "border-box" : lb.boxSizing ? $E.css("boxSizing") : "content-box"
 		,	b	= $.layout.borderWidth
 		,	n	= $.layout.cssNum
 		,	H	= outerHeight
@@ -628,32 +630,37 @@ $.layout = {
  *	$.layout.browser REPLACES removed $.browser, with extra data
  *	Parsing code here adapted from jQuery 1.8 $.browse
  */
-var u = navigator.userAgent.toLowerCase()
-,	m = /(chrome)[ \/]([\w.]+)/.exec( u )
-	||	/(webkit)[ \/]([\w.]+)/.exec( u )
-	||	/(opera)(?:.*version|)[ \/]([\w.]+)/.exec( u )
-	||	/(msie) ([\w.]+)/.exec( u )
-	||	u.indexOf("compatible") < 0 && /(mozilla)(?:.*? rv:([\w.]+)|)/.exec( u )
-	||	[]
-,	b = m[1] || ""
-,	v = m[2] || 0
-,	ie = b === "msie"
-,	cm = document.compatMode
-,	bm = !ie || !cm || cm === 'CSS1Compat' || $.support.boxModel || false
-;
-$.layout.browser = {
-	version:	v
-,	safari:		b === "webkit"	// webkit (NOT chrome) = safari
-,	webkit:		b === "chrome"	// chrome = webkit
-,	msie:		ie
-,	isIE6:		ie && v == 6
-	// ONLY IE reverts to old box-model - Note that compatMode was deprecated as of IE8
-,	boxModel:	bm
-};
-if (b) $.layout.browser[b] = true; // set CURRENT browser
-/*	OLD versions of jQuery only set $.support.boxModel after page is loaded
- *	so if this is IE, use support.boxModel to test for quirks-mode (ONLY IE changes boxModel) */
-if (!bm && !cm) $(function(){ $.layout.browser.boxModel = $.support.boxModel; });
+(function(){
+	var u = navigator.userAgent.toLowerCase()
+	,	m = /(chrome)[ \/]([\w.]+)/.exec( u )
+		||	/(webkit)[ \/]([\w.]+)/.exec( u )
+		||	/(opera)(?:.*version|)[ \/]([\w.]+)/.exec( u )
+		||	/(msie) ([\w.]+)/.exec( u )
+		||	u.indexOf("compatible") < 0 && /(mozilla)(?:.*? rv:([\w.]+)|)/.exec( u )
+		||	[]
+	,	b = m[1] || ""
+	,	v = m[2] || 0
+	,	ie = b === "msie"
+	,	cm = document.compatMode
+	,	$s = $.support
+	,	bs = $s.boxSizing !== undefined ? $s.boxSizing : $s.boxSizingReliable
+	,	bm = !ie || !cm || cm === "CSS1Compat" || $s.boxModel || false
+	,	lb = $.layout.browser = {
+			version:	v
+		,	safari:		b === "webkit"	// webkit (NOT chrome) = safari
+		,	webkit:		b === "chrome"	// chrome = webkit
+		,	msie:		ie
+		,	isIE6:		ie && v == 6
+			// ONLY IE reverts to old box-model - Note that compatMode was deprecated as of IE8
+		,	boxModel:	bm
+		,	boxSizing:	!!(typeof bs === "function" ? bs() : bs)
+		};
+	;
+	if (b) lb[b] = true; // set CURRENT browser
+	/*	OLD versions of jQuery only set $.support.boxModel after page is loaded
+	 *	so if this is IE, use support.boxModel to test for quirks-mode (ONLY IE changes boxModel) */
+	if (!bm && !cm) $(function(){ lb.boxModel = $s.boxModel; });
+})();
 
 
 // DEFAULT OPTIONS
@@ -2908,8 +2915,7 @@ $.fn.layout = function (opts) {
 		,	z	= options.zIndexes
 		,	isIframe, el, $M, css, i
 		;
-		$Ms = $([]); // init/reset $Ms
-		if (!o.maskContents && !o.maskObjects) return $Ms;
+		if (!o.maskContents && !o.maskObjects) return $([]);
 		// if o.maskObjects=true, then loop TWICE to create BOTH kinds of mask, else only create a DIV
 		for (i=0; i < (o.maskObjects ? 2 : 1); i++) {
 			isIframe = o.maskObjects && i==0;
@@ -3419,7 +3425,6 @@ $.fn.layout = function (opts) {
 			.addClass( rClass+_closed +" "+ rClass+_pane+_closed )
 		;
 		// handle already-hidden panes in case called by swap() or a similar method 
-
 		if (s.isHidden) $R.hide(); // hide resizer-bar 
 
 		// DISABLE 'resizing' when closed - do this BEFORE bindStartSlidingEvents?
@@ -5125,12 +5130,28 @@ $.fn.layout = function (opts) {
 
 
 })( jQuery );
-// END Layout - keep internal vars internal!
 
 
 
-// START Plugins - shared wrapper, no global vars
-(function ($) {
+
+/**
+ * jquery.layout.state 1.2
+ * $Date: 2014-08-30 08:00:00 (Sat, 30 Aug 2014) $
+ *
+ * Copyright (c) 2014 
+ *   Kevin Dalman (http://allpro.net)
+ *
+ * Dual licensed under the GPL (http://www.gnu.org/licenses/gpl.html)
+ * and MIT (http://www.opensource.org/licenses/mit-license.php) licenses.
+ *
+ * @requires: UI Layout 1.4.0 or higher
+ * @requires: $.ui.cookie (above)
+ *
+ * @see: http://groups.google.com/group/jquery-ui-layout
+ */
+;(function ($) {
+
+if (!$.layout) return;
 
 
 /**
@@ -5210,23 +5231,8 @@ if (!$.cookie) $.cookie = function (k, v, o) {
 };
 
 
-/**
- * jquery.layout.state 1.1
- * $Date: 2014-08-09 08:00:00 (Sat, 9 August 2014) $
- *
- * Copyright (c) 2014 
- *   Kevin Dalman (http://allpro.net)
- *
- * Dual licensed under the GPL (http://www.gnu.org/licenses/gpl.html)
- * and MIT (http://www.opensource.org/licenses/mit-license.php) licenses.
- *
- * @requires: UI Layout 1.3.0.rc30.1 or higher
- * @requires: $.ui.cookie (above)
- *
- * @see: http://groups.google.com/group/jquery-ui-layout
- */
 
-/*
+/**
  *	State-management options stored in options.stateManagement, which includes a .cookie hash
  *	Default options saves ALL KEYS for ALL PANES, ie: pane.size, pane.isClosed, pane.isHidden
  *
@@ -5495,9 +5501,9 @@ $.layout.state = {
 	/**
 	 *	Stringify a JSON hash so can save in a cookie or db-field
 	 */
-,	encodeJSON: function (JSON) {
-		var native = window.JSON || {};
-		return (native.stringify || stringify)(JSON);
+,	encodeJSON: function (json) {
+		var local = window.JSON || {};
+		return (local.stringify || stringify)(json);
 
 		function stringify (h) {
 			var D=[], i=0, k, v, t // k = key, v = value
@@ -5604,49 +5610,57 @@ $.layout.onUnload.push( $.layout.state._unload );
 
 
 /**
- * jquery.layout.buttons 1.0
+ * @preserve jquery.layout.buttons 1.0
  * $Date: 2011-07-16 08:00:00 (Sat, 16 July 2011) $
  *
- * Copyright (c) 2012 
+ * Copyright (c) 2011 
  *   Kevin Dalman (http://allpro.net)
  *
  * Dual licensed under the GPL (http://www.gnu.org/licenses/gpl.html)
  * and MIT (http://www.opensource.org/licenses/mit-license.php) licenses.
  *
- * @requires: UI Layout 1.3.0.rc30.1 or higher
+ * @dependancies: UI Layout 1.3.0.rc30.1 or higher
  *
- * @see: http://groups.google.com/group/jquery-ui-layout
+ * @support: http://groups.google.com/group/jquery-ui-layout
  *
  * Docs: [ to come ]
  * Tips: [ to come ]
  */
+;(function ($) {
+
+if (!$.layout) return;
+
 
 // tell Layout that the state plugin is available
 $.layout.plugins.buttons = true;
 
-//	Add buttons options to layout.defaults
+//	Add State-Management options to layout.defaults
 $.layout.defaults.autoBindCustomButtons = false;
-// Specify autoBindCustomButtons as a layout-option, NOT a pane-option
+// Set stateManagement as a layout-option, NOT a pane-option
 $.layout.optionsMap.layout.push("autoBindCustomButtons");
+
+var lang = $.layout.language;
 
 /*
  *	Button methods
  */
 $.layout.buttons = {
+	// set data used by multiple methods below
+	config: {
+		borderPanes:	"north,south,west,east"
+	}
 
 	/**
-	 * Searches for .ui-layout-button-xxx elements and auto-binds them as layout-buttons
-	 *
-	 * @see  _create()
-	 *
-	 * @param  {Object}		inst	Layout Instance object
-	 */
-	init: function (inst) {
+	* Searches for .ui-layout-button-xxx elements and auto-binds them as layout-buttons
+	*
+	* @see  _create()
+	*/
+,	init: function (inst) {
 		var pre		= "ui-layout-button-"
 		,	layout	= inst.options.name || ""
 		,	name;
 		$.each("toggle,open,close,pin,toggle-slide,open-slide".split(","), function (i, action) {
-			$.each($.layout.config.borderPanes, function (ii, pane) {
+			$.each($.layout.buttons.config.borderPanes.split(","), function (ii, pane) {
 				$("."+pre+action+"-"+pane).each(function(){
 					// if button was previously 'bound', data.layoutName was set, but is blank if layout has no 'name'
 					name = $(this).data("layoutName") || $(this).attr("layoutName");
@@ -5658,32 +5672,29 @@ $.layout.buttons = {
 	}
 
 	/**
-	 * Helper function to validate params received by addButton utilities
-	 *
-	 * Two classes are added to the element, based on the buttonClass...
-	 * The type of button is appended to create the 2nd className:
-	 *  - ui-layout-button-pin		// action btnClass
-	 *  - ui-layout-button-pin-west	// action btnClass + pane
-	 *  - ui-layout-button-toggle
-	 *  - ui-layout-button-open
-	 *  - ui-layout-button-close
-	 *
-	 * @param {Object}			inst		Layout Instance object
-	 * @param {(string|!Object)}	selector	jQuery selector (or element) for button, eg: ".ui-layout-north .toggle-button"
-	 * @param {string}   		pane 		Name of the pane the button is for: 'north', 'south', etc.
-	 *
-	 * @return {Array.<Object>}	If both params valid, the element matching 'selector' in a jQuery wrapper - otherwise returns null
-	 */
+	* Helper function to validate params received by addButton utilities
+	*
+	* Two classes are added to the element, based on the buttonClass...
+	* The type of button is appended to create the 2nd className:
+	*  - ui-layout-button-pin
+	*  - ui-layout-pane-button-toggle
+	*  - ui-layout-pane-button-open
+	*  - ui-layout-pane-button-close
+	*
+	* @param  {(string|!Object)}	selector	jQuery selector (or element) for button, eg: ".ui-layout-north .toggle-button"
+	* @param  {string}   			pane 		Name of the pane the button is for: 'north', 'south', etc.
+	* @return {Array.<Object>}		If both params valid, the element matching 'selector' in a jQuery wrapper - otherwise returns null
+	*/
 ,	get: function (inst, selector, pane, action) {
 		var $E	= $(selector)
 		,	o	= inst.options
-		,	err	= o.errors.addButtonError
+		,	err	= o.showErrorMessages
 		;
 		if (!$E.length) { // element not found
-			$.layout.msg(err +" "+ o.errors.selector +": "+ selector, true);
+			if (err) alert(lang.errButton + lang.selector +": "+ selector);
 		}
-		else if ($.inArray(pane, $.layout.config.borderPanes) < 0) { // invalid 'pane' sepecified
-			$.layout.msg(err +" "+ o.errors.pane +": "+ pane, true);
+		else if ($.layout.buttons.config.borderPanes.indexOf(pane) === -1) { // invalid 'pane' sepecified
+			if (err) alert(lang.errButton + lang.pane +": "+ pane);
 			$E = $("");  // NO BUTTON
 		}
 		else { // VALID
@@ -5696,34 +5707,32 @@ $.layout.buttons = {
 
 
 	/**
-	 * NEW syntax for binding layout-buttons - will eventually replace addToggle, addOpen, etc.
-	 *
-	 * @param {Object}			inst		Layout Instance object
-	 * @param {(string|!Object)}	selector	jQuery selector (or element) for button, eg: ".ui-layout-north .toggle-button"
-	 * @param {string}			action
-	 * @param {string}			pane
-	 */
-,	bind: function (inst, selector, action, pane) {
-		var b = $.layout.buttons;
+	* NEW syntax for binding layout-buttons - will eventually replace addToggle, addOpen, etc.
+	*
+	* @param {(string|!Object)}	sel		jQuery selector (or element) for button, eg: ".ui-layout-north .toggle-button"
+	* @param {string}			action
+	* @param {string}			pane
+	*/
+,	bind: function (inst, sel, action, pane) {
+		var _ = $.layout.buttons;
 		switch (action.toLowerCase()) {
-			case "toggle":			b.addToggle	(inst, selector, pane); break;	
-			case "open":			b.addOpen	(inst, selector, pane); break;
-			case "close":			b.addClose	(inst, selector, pane); break;
-			case "pin":				b.addPin	(inst, selector, pane); break;
-			case "toggle-slide":	b.addToggle	(inst, selector, pane, true); break;	
-			case "open-slide":		b.addOpen	(inst, selector, pane, true); break;
+			case "toggle":			_.addToggle	(inst, sel, pane); break;	
+			case "open":			_.addOpen	(inst, sel, pane); break;
+			case "close":			_.addClose	(inst, sel, pane); break;
+			case "pin":				_.addPin	(inst, sel, pane); break;
+			case "toggle-slide":	_.addToggle	(inst, sel, pane, true); break;	
+			case "open-slide":		_.addOpen	(inst, sel, pane, true); break;
 		}
 		return inst;
 	}
 
 	/**
-	 * Add a custom Toggler button for a pane
-	 *
-	 * @param {Object}			inst		Layout Instance object
-	 * @param {(string|!Object)}	selector	jQuery selector (or element) for button, eg: ".ui-layout-north .toggle-button"
-	 * @param {string}  			pane 		Name of the pane the button is for: 'north', 'south', etc.
-	 * @param {boolean=}			slide 		true = slide-open, false = pin-open
-	 */
+	* Add a custom Toggler button for a pane
+	*
+	* @param {(string|!Object)}	selector	jQuery selector (or element) for button, eg: ".ui-layout-north .toggle-button"
+	* @param {string}  			pane 		Name of the pane the button is for: 'north', 'south', etc.
+	* @param {boolean=}			slide 		true = slide-open, false = pin-open
+	*/
 ,	addToggle: function (inst, selector, pane, slide) {
 		$.layout.buttons.get(inst, selector, pane, "toggle")
 			.click(function(evt){
@@ -5734,16 +5743,15 @@ $.layout.buttons = {
 	}
 
 	/**
-	 * Add a custom Open button for a pane
-	 *
-	 * @param {Object}			inst		Layout Instance object
-	 * @param {(string|!Object)}	selector	jQuery selector (or element) for button, eg: ".ui-layout-north .toggle-button"
-	 * @param {string}			pane 		Name of the pane the button is for: 'north', 'south', etc.
-	 * @param {boolean=}			slide 		true = slide-open, false = pin-open
-	 */
+	* Add a custom Open button for a pane
+	*
+	* @param {(string|!Object)}	selector	jQuery selector (or element) for button, eg: ".ui-layout-north .toggle-button"
+	* @param {string}			pane 		Name of the pane the button is for: 'north', 'south', etc.
+	* @param {boolean=}			slide 		true = slide-open, false = pin-open
+	*/
 ,	addOpen: function (inst, selector, pane, slide) {
 		$.layout.buttons.get(inst, selector, pane, "open")
-			.attr("title", inst.options[pane].tips.Open)
+			.attr("title", lang.Open)
 			.click(function (evt) {
 				inst.open(pane, !!slide);
 				evt.stopPropagation();
@@ -5752,15 +5760,14 @@ $.layout.buttons = {
 	}
 
 	/**
-	 * Add a custom Close button for a pane
-	 *
-	 * @param {Object}			inst		Layout Instance object
-	 * @param {(string|!Object)}	selector	jQuery selector (or element) for button, eg: ".ui-layout-north .toggle-button"
-	 * @param {string}   		pane 		Name of the pane the button is for: 'north', 'south', etc.
-	 */
+	* Add a custom Close button for a pane
+	*
+	* @param {(string|!Object)}	selector	jQuery selector (or element) for button, eg: ".ui-layout-north .toggle-button"
+	* @param {string}   		pane 		Name of the pane the button is for: 'north', 'south', etc.
+	*/
 ,	addClose: function (inst, selector, pane) {
 		$.layout.buttons.get(inst, selector, pane, "close")
-			.attr("title", inst.options[pane].tips.Close)
+			.attr("title", lang.Close)
 			.click(function (evt) {
 				inst.close(pane);
 				evt.stopPropagation();
@@ -5769,32 +5776,30 @@ $.layout.buttons = {
 	}
 
 	/**
-	 * Add a custom Pin button for a pane
-	 *
-	 * Four classes are added to the element, based on the paneClass for the associated pane...
-	 * Assuming the default paneClass and the pin is 'up', these classes are added for a west-pane pin:
-	 *  - ui-layout-pane-pin
-	 *  - ui-layout-pane-west-pin
-	 *  - ui-layout-pane-pin-up
-	 *  - ui-layout-pane-west-pin-up
-	 *
-	 * @param {Object}			inst		Layout Instance object
-	 * @param {(string|!Object)}	selector	jQuery selector (or element) for button, eg: ".ui-layout-north .toggle-button"
-	 * @param {string}   		pane 		Name of the pane the pin is for: 'north', 'south', etc.
-	 */
+	* Add a custom Pin button for a pane
+	*
+	* Four classes are added to the element, based on the paneClass for the associated pane...
+	* Assuming the default paneClass and the pin is 'up', these classes are added for a west-pane pin:
+	*  - ui-layout-pane-pin
+	*  - ui-layout-pane-west-pin
+	*  - ui-layout-pane-pin-up
+	*  - ui-layout-pane-west-pin-up
+	*
+	* @param {(string|!Object)}	selector	jQuery selector (or element) for button, eg: ".ui-layout-north .toggle-button"
+	* @param {string}   		pane 		Name of the pane the pin is for: 'north', 'south', etc.
+	*/
 ,	addPin: function (inst, selector, pane) {
-		var	b	= $.layout.buttons
-		,	$E	= b.get(inst, selector, pane, "pin");
+		var $E = $.layout.buttons.get(inst, selector, pane, "pin");
 		if ($E.length) {
 			var s = inst.state[pane];
 			$E.click(function (evt) {
-				b.setPinState(inst, $(this), pane, (s.isSliding || s.isClosed));
+				$.layout.buttons.setPinState(inst, $(this), pane, (s.isSliding || s.isClosed));
 				if (s.isSliding || s.isClosed) inst.open( pane ); // change from sliding to open
 				else inst.close( pane ); // slide-closed
 				evt.stopPropagation();
 			});
 			// add up/down pin attributes and classes
-			b.setPinState(inst, $E, pane, (!s.isClosed && !s.isSliding));
+			$.layout.buttons.setPinState(inst, $E, pane, (!s.isClosed && !s.isSliding));
 			// add this pin to the pane data so we can 'sync it' automatically
 			// PANE.pins key is an array so we can store multiple pins for each pane
 			s.pins.push( selector ); // just save the selector string
@@ -5803,73 +5808,66 @@ $.layout.buttons = {
 	}
 
 	/**
-	 * Change the class of the pin button to make it look 'up' or 'down'
-	 *
-	 * @see  addPin(), syncPins()
-	 *
-	 * @param {Object}			inst	Layout Instance object
-	 * @param {Array.<Object>}	$Pin	The pin-span element in a jQuery wrapper
-	 * @param {string}			pane	These are the params returned to callbacks by layout()
-	 * @param {boolean}			doPin	true = set the pin 'down', false = set it 'up'
-	 */
+	* Change the class of the pin button to make it look 'up' or 'down'
+	*
+	* @see  addPin(), syncPins()
+	* @param {Array.<Object>}	$Pin	The pin-span element in a jQuery wrapper
+	* @param {string}	pane	These are the params returned to callbacks by layout()
+	* @param {boolean}	doPin	true = set the pin 'down', false = set it 'up'
+	*/
 ,	setPinState: function (inst, $Pin, pane, doPin) {
 		var updown = $Pin.attr("pin");
 		if (updown && doPin === (updown=="down")) return; // already in correct state
 		var
-			o		= inst.options[pane]
-		,	pin		= o.buttonClass +"-pin"
+			pin		= inst.options[pane].buttonClass +"-pin"
 		,	side	= pin +"-"+ pane
 		,	UP		= pin +"-up "+	side +"-up"
 		,	DN		= pin +"-down "+side +"-down"
 		;
 		$Pin
 			.attr("pin", doPin ? "down" : "up") // logic
-			.attr("title", doPin ? o.tips.Unpin : o.tips.Pin)
+			.attr("title", doPin ? lang.Unpin : lang.Pin)
 			.removeClass( doPin ? UP : DN ) 
 			.addClass( doPin ? DN : UP ) 
 		;
 	}
 
 	/**
-	 * INTERNAL function to sync 'pin buttons' when pane is opened or closed
-	 * Unpinned means the pane is 'sliding' - ie, over-top of the adjacent panes
-	 *
-	 * @see  open(), close()
-	 *
-	 * @param {Object}			inst	Layout Instance object
-	 * @param {string}	pane	These are the params returned to callbacks by layout()
-	 * @param {boolean}	doPin	True means set the pin 'down', False means 'up'
-	 */
+	* INTERNAL function to sync 'pin buttons' when pane is opened or closed
+	* Unpinned means the pane is 'sliding' - ie, over-top of the adjacent panes
+	*
+	* @see  open(), close()
+	* @param {string}	pane   These are the params returned to callbacks by layout()
+	* @param {boolean}	doPin  True means set the pin 'down', False means 'up'
+	*/
 ,	syncPinBtns: function (inst, pane, doPin) {
 		// REAL METHOD IS _INSIDE_ LAYOUT - THIS IS HERE JUST FOR REFERENCE
-		$.each(inst.state[pane].pins, function (i, selector) {
+		$.each(state[pane].pins, function (i, selector) {
 			$.layout.buttons.setPinState(inst, $(selector), pane, doPin);
 		});
 	}
 
 
 ,	_load: function (inst) {
-		var	b	= $.layout.buttons;
-		// ADD Button methods to Layout Instance
-		// Note: sel = jQuery Selector string
+		//	ADD Button methods to Layout Instance
 		$.extend( inst, {
-			bindButton:		function (sel, action, pane) { return b.bind(inst, sel, action, pane); }
-		//	DEPRECATED METHODS
-		,	addToggleBtn:	function (sel, pane, slide) { return b.addToggle(inst, sel, pane, slide); }
-		,	addOpenBtn:		function (sel, pane, slide) { return b.addOpen(inst, sel, pane, slide); }
-		,	addCloseBtn:	function (sel, pane) { return b.addClose(inst, sel, pane); }
-		,	addPinBtn:		function (sel, pane) { return b.addPin(inst, sel, pane); }
+			bindButton:		function (selector, action, pane) { return $.layout.buttons.bind(inst, selector, action, pane); }
+		//	DEPRECATED METHODS...
+		,	addToggleBtn:	function (selector, pane, slide) { return $.layout.buttons.addToggle(inst, selector, pane, slide); }
+		,	addOpenBtn:		function (selector, pane, slide) { return $.layout.buttons.addOpen(inst, selector, pane, slide); }
+		,	addCloseBtn:	function (selector, pane) { return $.layout.buttons.addClose(inst, selector, pane); }
+		,	addPinBtn:		function (selector, pane) { return $.layout.buttons.addPin(inst, selector, pane); }
 		});
 
 		// init state array to hold pin-buttons
 		for (var i=0; i<4; i++) {
-			var pane = $.layout.config.borderPanes[i];
+			var pane = $.layout.buttons.config.borderPanes[i];
 			inst.state[pane].pins = [];
 		}
 
 		// auto-init buttons onLoad if option is enabled
 		if ( inst.options.autoBindCustomButtons )
-			b.init(inst);
+			$.layout.buttons.init(inst);
 	}
 
 ,	_unload: function (inst) {
@@ -5881,6 +5879,9 @@ $.layout.buttons = {
 // add initialization method to Layout's onLoad array of functions
 $.layout.onLoad.push(  $.layout.buttons._load );
 //$.layout.onUnload.push( $.layout.buttons._unload );
+
+})( jQuery );
+
 
 
 
@@ -5901,6 +5902,7 @@ $.layout.onLoad.push(  $.layout.buttons._load );
  * TODO: Extend logic to handle other problematic zooming in browsers
  * TODO: Add hotkey/mousewheel bindings to _instantly_ respond to these zoom event
  */
+(function ($) {
 
 // tell Layout that the plugin is available
 $.layout.plugins.browserZoom = true;
@@ -5972,5 +5974,110 @@ $.layout.browserZoom = {
 // add initialization method to Layout's onLoad array of functions
 $.layout.onReady.push( $.layout.browserZoom._init );
 
+
+})( jQuery );
+
+
+
+
+/**
+ *	UI Layout Plugin: Slide-Offscreen Animation
+ *
+ *	Prevent panes from being 'hidden' so that an iframes/objects 
+ *	does not reload/refresh when pane 'opens' again.
+ *	This plug-in adds a new animation called "slideOffscreen".
+ *	It is identical to the normal "slide" effect, but avoids hiding the element
+ *
+ *	Requires Layout 1.3.0.RC30.1 or later for Close offscreen
+ *	Requires Layout 1.3.0.RC30.5 or later for Hide, initClosed & initHidden offscreen
+ *
+ *	Version:	1.1 - 2012-11-18
+ *	Author:		Kevin Dalman (kevin@jquery-dev.com)
+ *	@preserve	jquery.layout.slideOffscreen-1.1.js
+ */
+;(function ($) {
+
+// Add a new "slideOffscreen" effect
+if ($.effects) {
+
+	// add an option so initClosed and initHidden will work
+	$.layout.defaults.panes.useOffscreenClose = false; // user must enable when needed
+	/* set the new animation as the default for all panes
+	$.layout.defaults.panes.fxName = "slideOffscreen";
+	*/
+
+	if ($.layout.plugins)
+		$.layout.plugins.effects.slideOffscreen = true;
+
+	// dupe 'slide' effect defaults as new effect defaults
+	$.layout.effects.slideOffscreen = $.extend(true, {}, $.layout.effects.slide);
+
+	// add new effect to jQuery UI
+	$.effects.slideOffscreen = function(o) {
+		return this.queue(function(){
+
+			var fx		= $.effects
+			,	opt		= o.options
+			,	$el		= $(this)
+			,	pane	= $el.data('layoutEdge')
+			,	state	= $el.data('parentLayout').state
+			,	dist	= state[pane].size
+			,	s		= this.style
+			,	props	= ['top','bottom','left','right']
+				// Set options
+			,	mode	= fx.setMode($el, opt.mode || 'show') // Set Mode
+			,	show	= (mode == 'show')
+			,	dir		= opt.direction || 'left' // Default Direction
+			,	ref	 	= (dir == 'up' || dir == 'down') ? 'top' : 'left'
+			,	pos		= (dir == 'up' || dir == 'left')
+			,	offscrn	= $.layout.config.offscreenCSS || {}
+			,	keyLR	= $.layout.config.offscreenReset
+			,	keyTB	= 'offscreenResetTop' // only used internally
+			,	animation = {}
+			;
+			// Animation settings
+			animation[ref]	= (show ? (pos ? '+=' : '-=') : (pos ? '-=' : '+=')) + dist;
+
+			if (show) { // show() animation, so save top/bottom but retain left/right set when 'hidden'
+				$el.data(keyTB, { top: s.top, bottom: s.bottom });
+
+				// set the top or left offset in preparation for animation
+				// Note: ALL animations work by shifting the top or left edges
+				if (pos) { // top (north) or left (west)
+					$el.css(ref, isNaN(dist) ? "-" + dist : -dist); // Shift outside the left/top edge
+				}
+				else { // bottom (south) or right (east) - shift all the way across container
+					if (dir === 'right')
+						$el.css({ left: state.container.layoutWidth, right: 'auto' });
+					else // dir === bottom
+						$el.css({ top: state.container.layoutHeight, bottom: 'auto' });
+				}
+				// restore the left/right setting if is a top/bottom animation
+				if (ref === 'top')
+					$el.css( $el.data( keyLR ) || {} );
+			}
+			else { // hide() animation, so save ALL CSS
+				$el.data(keyTB, { top: s.top, bottom: s.bottom });
+				$el.data(keyLR, { left: s.left, right: s.right });
+			}
+
+			// Animate
+			$el.show().animate(animation, { queue: false, duration: o.duration, easing: opt.easing, complete: function(){
+				// Restore top/bottom
+				if ($el.data( keyTB ))
+					$el.css($el.data( keyTB )).removeData( keyTB );
+				if (show) // Restore left/right too
+					$el.css($el.data( keyLR ) || {}).removeData( keyLR );
+				else // Move the pane off-screen (left: -99999, right: 'auto')
+					$el.css( offscrn );
+
+				if (o.callback) o.callback.apply(this, arguments); // Callback
+				$el.dequeue();
+			}});
+
+		});
+	};
+
+}
 
 })( jQuery );

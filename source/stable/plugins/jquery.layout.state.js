@@ -1,3 +1,19 @@
+/**
+ * jquery.layout.state 1.2
+ * $Date: 2014-08-30 08:00:00 (Sat, 30 Aug 2014) $
+ *
+ * Copyright (c) 2014 
+ *   Kevin Dalman (http://allpro.net)
+ *
+ * Dual licensed under the GPL (http://www.gnu.org/licenses/gpl.html)
+ * and MIT (http://www.opensource.org/licenses/mit-license.php) licenses.
+ *
+ * @requires: UI Layout 1.4.0 or higher
+ * @requires: $.ui.cookie (above)
+ *
+ * @see: http://groups.google.com/group/jquery-ui-layout
+ */
+
 // NOTE: For best readability, view with a fixed-width font and tabs equal to 4-chars
 ;(function ($) {
 
@@ -81,23 +97,8 @@ if (!$.cookie) $.cookie = function (k, v, o) {
 };
 
 
-/**
- * jquery.layout.state 1.1
- * $Date: 2011-07-16 08:00:00 (Sat, 16 July 2011) $
- *
- * Copyright (c) 2014 
- *   Kevin Dalman (http://allpro.net)
- *
- * Dual licensed under the GPL (http://www.gnu.org/licenses/gpl.html)
- * and MIT (http://www.opensource.org/licenses/mit-license.php) licenses.
- *
- * @requires: UI Layout 1.3.0.rc30.1 or higher
- * @requires: $.ui.cookie (above)
- *
- * @see: http://groups.google.com/group/jquery-ui-layout
- */
 
-/*
+/**
  *	State-management options stored in options.stateManagement, which includes a .cookie hash
  *	Default options saves ALL KEYS for ALL PANES, ie: pane.size, pane.isClosed, pane.isHidden
  *
@@ -366,9 +367,9 @@ $.layout.state = {
 	/**
 	 *	Stringify a JSON hash so can save in a cookie or db-field
 	 */
-,	encodeJSON: function (JSON) {
-		var native = window.JSON || {};
-		return (native.stringify || stringify)(JSON);
+,	encodeJSON: function (json) {
+		var local = window.JSON || {};
+		return (local.stringify || stringify)(json);
 
 		function stringify (h) {
 			var D=[], i=0, k, v, t // k = key, v = value

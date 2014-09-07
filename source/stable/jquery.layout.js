@@ -1,8 +1,8 @@
 /**
  * @preserve
- * jquery.layout 1.4.2
- * $Date: 2014-08-09 08:00:00 (Sat, 9 Aug 2014) $
- * $Rev: 1.0402 $
+ * jquery.layout 1.4.3
+ * $Date: 2014-08-30 08:00:00 (Sat, 30 Aug 2014) $
+ * $Rev: 1.0403 $
  *
  * Copyright (c) 2014 Kevin Dalman (http://jquery-dev.com)
  * Based on work by Fabrizio Balliano (http://www.fabrizioballiano.net)
@@ -65,8 +65,8 @@ var	min		= Math.min
  */
 $.layout = {
 
-	version:	"1.4.2"
-,	revision:	1.0402 // eg: 1.4.1 final = 1.0401 - major(n+).minor(nn)+patch(nn+)
+	version:	"1.4.3"
+,	revision:	1.0403 // eg: 1.4.1 final = 1.0401 - major(n+).minor(nn)+patch(nn+)
 
 	// $.layout.browser REPLACES $.browser
 ,	browser:	{} // set below
@@ -323,8 +323,8 @@ $.layout = {
 ,	scrollbarWidth:		function () { return window.scrollbarWidth  || $.layout.getScrollbarSize('width'); }
 ,	scrollbarHeight:	function () { return window.scrollbarHeight || $.layout.getScrollbarSize('height'); }
 ,	getScrollbarSize:	function (dim) {
-		var $c	= $('<div style="position: absolute; top: -10000px; left: -10000px; width: 100px; height: 100px; overflow: scroll;"></div>').appendTo("body");
-		var d	= { width: $c.css("width") - $c[0].clientWidth, height: $c.height() - $c[0].clientHeight };
+		var $c	= $('<div style="position: absolute; top: -10000px; left: -10000px; width: 100px; height: 100px; border: 0; overflow: scroll;"></div>').appendTo("body")
+		,	d	= { width: $c.outerWidth - $c[0].clientWidth, height: 100 - $c[0].clientHeight };
 		$c.remove();
 		window.scrollbarWidth	= d.width;
 		window.scrollbarHeight	= d.height;
@@ -466,7 +466,8 @@ $.layout = {
 		// a 'calculated' outerHeight can be passed so borders and/or padding are removed if needed
 		if (outerWidth <= 0) return 0;
 
-		var bs	= !$.layout.browser.boxModel ? "border-box" : $.support.boxSizing ? $E.css("boxSizing") : "content-box"
+		var lb	= $.layout.browser
+		,	bs	= !lb.boxModel ? "border-box" : lb.boxSizing ? $E.css("boxSizing") : "content-box"
 		,	b	= $.layout.borderWidth
 		,	n	= $.layout.cssNum
 		,	W	= outerWidth
@@ -491,7 +492,8 @@ $.layout = {
 		// a 'calculated' outerHeight can be passed so borders and/or padding are removed if needed
 		if (outerHeight <= 0) return 0;
 
-		var bs	= !$.layout.browser.boxModel ? "border-box" : $.support.boxSizing ? $E.css("boxSizing") : "content-box"
+		var lb	= $.layout.browser
+		,	bs	= !lb.boxModel ? "border-box" : lb.boxSizing ? $E.css("boxSizing") : "content-box"
 		,	b	= $.layout.borderWidth
 		,	n	= $.layout.cssNum
 		,	H	= outerHeight
@@ -628,32 +630,37 @@ $.layout = {
  *	$.layout.browser REPLACES removed $.browser, with extra data
  *	Parsing code here adapted from jQuery 1.8 $.browse
  */
-var u = navigator.userAgent.toLowerCase()
-,	m = /(chrome)[ \/]([\w.]+)/.exec( u )
-	||	/(webkit)[ \/]([\w.]+)/.exec( u )
-	||	/(opera)(?:.*version|)[ \/]([\w.]+)/.exec( u )
-	||	/(msie) ([\w.]+)/.exec( u )
-	||	u.indexOf("compatible") < 0 && /(mozilla)(?:.*? rv:([\w.]+)|)/.exec( u )
-	||	[]
-,	b = m[1] || ""
-,	v = m[2] || 0
-,	ie = b === "msie"
-,	cm = document.compatMode
-,	bm = !ie || !cm || cm === 'CSS1Compat' || $.support.boxModel || false
-;
-$.layout.browser = {
-	version:	v
-,	safari:		b === "webkit"	// webkit (NOT chrome) = safari
-,	webkit:		b === "chrome"	// chrome = webkit
-,	msie:		ie
-,	isIE6:		ie && v == 6
-	// ONLY IE reverts to old box-model - Note that compatMode was deprecated as of IE8
-,	boxModel:	bm
-};
-if (b) $.layout.browser[b] = true; // set CURRENT browser
-/*	OLD versions of jQuery only set $.support.boxModel after page is loaded
- *	so if this is IE, use support.boxModel to test for quirks-mode (ONLY IE changes boxModel) */
-if (!bm && !cm) $(function(){ $.layout.browser.boxModel = $.support.boxModel; });
+(function(){
+	var u = navigator.userAgent.toLowerCase()
+	,	m = /(chrome)[ \/]([\w.]+)/.exec( u )
+		||	/(webkit)[ \/]([\w.]+)/.exec( u )
+		||	/(opera)(?:.*version|)[ \/]([\w.]+)/.exec( u )
+		||	/(msie) ([\w.]+)/.exec( u )
+		||	u.indexOf("compatible") < 0 && /(mozilla)(?:.*? rv:([\w.]+)|)/.exec( u )
+		||	[]
+	,	b = m[1] || ""
+	,	v = m[2] || 0
+	,	ie = b === "msie"
+	,	cm = document.compatMode
+	,	$s = $.support
+	,	bs = $s.boxSizing !== undefined ? $s.boxSizing : $s.boxSizingReliable
+	,	bm = !ie || !cm || cm === "CSS1Compat" || $s.boxModel || false
+	,	lb = $.layout.browser = {
+			version:	v
+		,	safari:		b === "webkit"	// webkit (NOT chrome) = safari
+		,	webkit:		b === "chrome"	// chrome = webkit
+		,	msie:		ie
+		,	isIE6:		ie && v == 6
+			// ONLY IE reverts to old box-model - Note that compatMode was deprecated as of IE8
+		,	boxModel:	bm
+		,	boxSizing:	!!(typeof bs === "function" ? bs() : bs)
+		};
+	;
+	if (b) lb[b] = true; // set CURRENT browser
+	/*	OLD versions of jQuery only set $.support.boxModel after page is loaded
+	 *	so if this is IE, use support.boxModel to test for quirks-mode (ONLY IE changes boxModel) */
+	if (!bm && !cm) $(function(){ lb.boxModel = $s.boxModel; });
+})();
 
 
 // DEFAULT OPTIONS
@@ -2908,8 +2915,7 @@ $.fn.layout = function (opts) {
 		,	z	= options.zIndexes
 		,	isIframe, el, $M, css, i
 		;
-		$Ms = $([]); // init/reset $Ms
-		if (!o.maskContents && !o.maskObjects) return $Ms;
+		if (!o.maskContents && !o.maskObjects) return $([]);
 		// if o.maskObjects=true, then loop TWICE to create BOTH kinds of mask, else only create a DIV
 		for (i=0; i < (o.maskObjects ? 2 : 1); i++) {
 			isIframe = o.maskObjects && i==0;
