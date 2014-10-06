@@ -2,24 +2,24 @@
 	"name": "jquery-ui-layout",
 	"title": "UI Layout",
 	"description": "Create advanced UI layouts with sizable, collapsible, nested panels and tons of options. Layout can create any UI look you want; from simple headers or sidebars to a complex application with toolbars, menus, help-panels, status bars, sub-forms, etc. Integrates with and enhances other UI widgets, like tabs, accordions and dialogs, to create rich interfaces.",
-	"version": "1.4.3",
+	"version": "1.4.4",
 	"keywords": [
 		"ui",
 		"layout"
 	],
-  "main": [
-    "source/stable/jquery.layout.js",
-    "source/stable/jquery.layout.min.js"
-  ],
-  "ignore": [
-    ".*",
-    "demos",
-    "source/dev",
-    "source/jquery",
-    "source/versions",
-    "source/*.txt",
-    "layout.jquery.json"
-  ],
+	"main": [
+		"source/stable/jquery.layout.js",
+		"source/stable/jquery.layout.min.js"
+	],
+	"ignore": [
+		".*",
+		"demos",
+		"source/dev",
+		"source/jquery",
+		"source/versions",
+		"source/*.txt",
+		"layout.jquery.json"
+	],
 	"author": {
 		"name": "Kevin Dalman",
 		"email": "kevin@jquery-dev.com"
