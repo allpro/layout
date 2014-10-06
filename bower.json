@@ -9,7 +9,8 @@
 	],
 	"main": [
 		"source/stable/jquery.layout.js",
-		"source/stable/jquery.layout.min.js"
+		"source/stable/jquery.layout.min.js",
+		"source/stable/layout-default.css"
 	],
 	"ignore": [
 		".*",
