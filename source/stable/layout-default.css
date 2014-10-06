@@ -32,6 +32,11 @@ body {
 	border:		1px solid #BBB;
 	padding:	10px; 
 	overflow:	auto;
+	/* don't create a new stacking context, so that overflowing child elements of a 'pane'
+	   (for example: popups, dropdown lists, tooltips) are correctly displayed
+		 in front of other 'panes' WHILE the mouse IS NEITHER over the 'pane' NOR over its child elements.
+		 */
+	z-index: auto !important;
 	/* DO NOT add scrolling (or padding) to 'panes' that have a content-div,
 	   otherwise you may get double-scrollbars - on the pane AND on the content-div
 	   - use ui-layout-wrapper class if pane has a content-div
