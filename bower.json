@@ -1,0 +1,12 @@
+{
+  "name": "layout",
+  "version": "1.4.3",
+  "homepage": "https://github.com/allpro/layout",
+  "authors": [
+    "Kevin Dalman"
+  ],
+  "keywords": [
+    "jquery"
+  ],
+  "license": "MIT"
+}
