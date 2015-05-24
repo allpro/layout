@@ -2,6 +2,8 @@
   "name": "layout",
   "version": "1.4.3",
   "homepage": "https://github.com/allpro/layout",
+  "main": "index",
+  "ignore": "",
   "authors": [
     "Kevin Dalman"
   ],
