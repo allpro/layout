@@ -3,7 +3,13 @@
   "version": "1.4.3.1",
   "homepage": "https://github.com/allpro/layout",
   "main": "index",
-  "ignore": "",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
   "authors": [
     "Kevin Dalman"
   ],
