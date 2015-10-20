@@ -467,7 +467,7 @@ $.layout = {
 		if (outerWidth <= 0) return 0;
 
 		var lb	= $.layout.browser
-		,	bs	= !lb.boxModel ? "border-box" : lb.boxSizing ? $E.css("boxSizing") : "content-box"
+		,	bs	= $E.css("boxSizing") || "content-box"
 		,	b	= $.layout.borderWidth
 		,	n	= $.layout.cssNum
 		,	W	= outerWidth
@@ -493,7 +493,7 @@ $.layout = {
 		if (outerHeight <= 0) return 0;
 
 		var lb	= $.layout.browser
-		,	bs	= !lb.boxModel ? "border-box" : lb.boxSizing ? $E.css("boxSizing") : "content-box"
+		,	bs	= $E.css("boxSizing") || "content-box"
 		,	b	= $.layout.borderWidth
 		,	n	= $.layout.cssNum
 		,	H	= outerHeight
