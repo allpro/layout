@@ -33,8 +33,8 @@ If you create a good looking application using UI Layout, please let us know.
 
 ### History & Future
 
-UI Layout was created 6 years ago as an enhancement to the borderLayout widget.
-Sourcecode was just recently transferred to GitHub, which also allowed it to be _re-registered_ on the jQuery plugins site.
+UI Layout was created 8 years ago as an enhancement to the borderLayout widget.
+Sourcecode was transferred to GitHub, which also allowed it to be _re-registered_ on the jQuery plugins site.
 You can find Layout on the jQuery site at: http://plugins.jquery.com/layout 
 
 Documentation and other information is being updated for the latest version and will be migrated to GitHub. 
