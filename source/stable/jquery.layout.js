@@ -2804,7 +2804,7 @@ $.fn.layout = function (opts) {
 		,	s		= state[pane]
 		;
 		// only masks over an IFRAME-pane need manual resizing
-		if (s.tagName == "IFRAME" && s.isVisible) // no need to mask closed/hidden panes
+		if (s && s.tagName == "IFRAME" && s.isVisible) // no need to mask closed/hidden panes
 			$M.css({
 				top:	s.offsetTop
 			,	left:	s.offsetLeft
