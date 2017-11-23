@@ -1829,7 +1829,7 @@ $.fn.layout = function (opts) {
 		,	$parent, n
 		;
 		// sC = state.container
-		sC.selector = $N.selector.split(".slice")[0];
+		// sC.selector = $N.selector.split(".slice")[0];
 		sC.ref		= (o.name ? o.name +' layout / ' : '') + tag + (id ? "#"+id : cls ? '.['+cls+']' : ''); // used in messages
 		sC.isBody	= (tag === "BODY");
 
