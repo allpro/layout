@@ -35,10 +35,11 @@
 ;(function ($) {
 
 // alias Math methods - used a lot!
+/*jshint -W014 */
 var	min		= Math.min
 ,	max		= Math.max
 ,	round	= Math.floor
-
+/*jshint +W014 */
 ,	isStr	=  function (v) { return $.type(v) === "string"; }
 
 	/**
@@ -1829,7 +1830,7 @@ $.fn.layout = function (opts) {
 		,	$parent, n
 		;
 		// sC = state.container
-		sC.selector = $N.selector.split(".slice")[0];
+		// sC.selector = $N.selector.split(".slice")[0];
 		sC.ref		= (o.name ? o.name +' layout / ' : '') + tag + (id ? "#"+id : cls ? '.['+cls+']' : ''); // used in messages
 		sC.isBody	= (tag === "BODY");
 
