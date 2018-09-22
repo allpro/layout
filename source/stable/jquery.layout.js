@@ -34,6 +34,9 @@
 
 ;(function ($) {
 
+//selector patch for jquery 2.x & 3.x
+$.fn.selector = { split: function() { return ""; }};
+
 // alias Math methods - used a lot!
 var	min		= Math.min
 ,	max		= Math.max
